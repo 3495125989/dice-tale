@@ -3,147 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>骰语 DiceTale v1.2.0</title>
+<title>骰语 DiceTale v1.3.1</title>
 <style>
-:root {
-  --bg: #0f1115; --bg2: #1a1d24; --bg3: #242830;
-  --border: #2e3340; --text: #e4e6eb; --dim: #8b8fa3;
-  --accent: #6c8cff; --gold: #d4a853;
-  --red: #e05555; --green: #5ec48a;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-  background: var(--bg); color: var(--text); height: 100vh; overflow: hidden;
-  display: flex; flex-direction: column;
-}
-#home { flex:1; overflow-y:auto; padding:20px; }
-.home-header { text-align:center; padding:30px 0 20px; }
-.logo { font-size:36px; font-weight:800; letter-spacing:6px; }
-.logo span { color: var(--accent); }
-.subtitle { color:var(--dim); font-size:13px; margin-top:8px; }
-.role-cards { display:flex; gap:16px; max-width:700px; margin:0 auto; padding:20px 0; }
-.role-card {
-  flex:1; background:var(--bg2); border:2px solid var(--border); border-radius:16px;
-  padding:24px; cursor:pointer; transition:all .2s; text-align:center;
-}
-.role-card:hover, .role-card.active { border-color:var(--accent); background:var(--bg3); }
-.role-card .icon { font-size:40px; margin-bottom:12px; }
-.role-card h3 { font-size:18px; margin-bottom:8px; }
-.role-card p { font-size:13px; color:var(--dim); line-height:1.5; }
-.form-box { max-width:420px; margin:0 auto; background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:24px; }
-.form-box h2 { font-size:16px; margin-bottom:16px; }
-.form-group { margin-bottom:14px; }
-.form-group label { display:block; font-size:13px; color:var(--dim); margin-bottom:6px; }
-.form-group input, .form-group select {
-  width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:8px;
-  padding:12px; color:var(--text); font-size:15px; outline:none;
-}
-.form-group .hint { font-size:12px; color:var(--dim); margin-top:4px; }
-.btn {
-  width:100%; padding:14px; border:none; border-radius:10px; font-size:16px; font-weight:600;
-  cursor:pointer; margin-top:8px;
-}
-.btn-primary { background:var(--accent); color:#fff; }
-.btn:disabled { opacity:.4; cursor:not-allowed; }
-#game { flex:1; display:none; flex-direction:column; height:100vh; }
-.topbar {
-  height:52px; background:var(--bg2); border-bottom:1px solid var(--border);
-  display:flex; align-items:center; padding:0 16px; gap:12px; flex-shrink:0;
-}
-.room-badge {
-  background:var(--gold); color:#1a1a1a; padding:6px 14px; border-radius:8px;
-  font-weight:800; font-size:16px; letter-spacing:2px;
-}
-.players-info { color:var(--dim); font-size:13px; }
-.spacer { flex:1; }
-.main { flex:1; display:flex; overflow:hidden; }
-.sidebar-left {
-  width:230px; background:var(--bg2); border-right:1px solid var(--border);
-  display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0;
-}
-.panel { border-bottom:1px solid var(--border); padding:14px; }
-.panel h3 { font-size:12px; color:var(--dim); margin-bottom:10px; letter-spacing:1px; }
-.player-chip {
-  display:flex; align-items:center; gap:8px; padding:8px; border-radius:8px; margin-bottom:6px;
-  background:var(--bg3); font-size:14px;
-}
-.player-chip .dot { width:8px; height:8px; border-radius:50%; background:var(--dim); }
-.player-chip.ready .dot { background:var(--green); }
-.dm-tag { background:var(--gold); color:#1a1a1a; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:700; }
-.npc-item, .clue-item { font-size:13px; color:var(--dim); padding:8px 0; border-bottom:1px solid var(--border); line-height:1.5; }
-.npc-item b { color:var(--text); }
-.story { flex:1; overflow-y:auto; padding:20px 24px; }
-.story-empty { text-align:center; color:var(--dim); padding:60px 20px; }
-.story-empty .big-icon { font-size:48px; margin-bottom:16px; }
-.log-entry { margin-bottom:18px; animation:fadeIn .3s; }
-@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-.log-entry .who { font-size:12px; margin-bottom:4px; font-weight:600; }
-.log-entry.dm .who, .log-entry.dm_reply .who { color:var(--gold); }
-.log-entry.action .who { color:var(--accent); }
-.log-entry.dice .who { color:var(--green); }
-.log-entry.system .who { color:var(--red); }
-.log-entry .what { font-size:15px; line-height:1.7; }
-.log-entry.dice .what { font-size:24px; font-weight:800; color:var(--green); }
-.sidebar-right {
-  width:250px; background:var(--bg2); border-left:1px solid var(--border);
-  display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0;
-}
-.char-card { background:var(--bg3); border-radius:10px; padding:14px; margin-bottom:12px; }
-.char-card h4 { font-size:15px; margin-bottom:8px; }
-.char-card .row { font-size:13px; color:var(--dim); margin-bottom:4px; line-height:1.5; }
-.scenario-box { font-size:13px; line-height:1.6; color:var(--dim); }
-.scenario-box b { color:var(--text); }
-.input-bar {
-  background:var(--bg2); border-top:1px solid var(--border);
-  padding:12px 16px; display:flex; gap:8px; align-items:center; flex-shrink:0;
-}
-.input-bar input { flex:1; background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-size:15px; outline:none; }
-.dice-btn { background:var(--gold); color:#1a1a1a; border:none; padding:12px 16px; border-radius:10px; cursor:pointer; font-weight:800; font-size:15px; white-space:nowrap; }
-.send-btn { background:var(--accent); color:#fff; border:none; padding:12px 18px; border-radius:10px; cursor:pointer; font-weight:600; font-size:15px; }
-.dice-select { background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:10px; border-radius:8px; font-size:14px; }
-
-/* 投票区 */
-.vote-box { max-width:600px; margin:0 auto; padding:20px; }
-.vote-option {
-  background:var(--bg3); border:2px solid var(--border); border-radius:12px;
-  padding:16px; margin-bottom:12px; cursor:pointer; transition:all .15s;
-}
-.vote-option:hover { border-color:var(--accent); }
-.vote-option.selected { border-color:var(--green); background:rgba(94,196,138,.1); }
-.vote-option h4 { font-size:16px; margin-bottom:6px; }
-.vote-option p { font-size:13px; color:var(--dim); line-height:1.5; }
-.vote-actions { display:flex; gap:12px; margin-top:16px; }
-.vote-actions .btn { margin-top:0; }
-.btn-approve { background:var(--green); color:#1a1a1a; }
-.btn-reject { background:var(--red); color:#fff; }
-
-.ready-btn {
-  background:var(--green); color:#1a1a1a; border:none; padding:10px 20px;
-  border-radius:10px; cursor:pointer; font-weight:700; font-size:14px;
-}
-.ready-btn.ready { background:var(--dim); color:#fff; }
-.stat-box { max-width:500px; margin:0 auto; padding:20px; }
-.stat-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
-.stat-row label { width:80px; font-size:14px; }
-.stat-row input[type=range] { flex:1; }
-.stat-row .val { width:30px; text-align:center; font-weight:700; color:var(--gold); }
-.stat-remaining { text-align:center; font-size:16px; margin:12px 0; }
-.stat-remaining b { color:var(--gold); font-size:20px; }
-.stat-display { background:var(--bg3); padding:10px; border-radius:8px; margin-bottom:6px; font-size:13px; }
-.stat-display span { color:var(--gold); font-weight:700; }
-.dm-action-btn {
-  background:var(--gold); color:#1a1a1a; border:none; padding:10px 20px;
-  border-radius:10px; cursor:pointer; font-weight:700; font-size:14px;
-}
-.mobile-tabs { display:none; }
-@media (max-width: 768px) {
-  .sidebar-left, .sidebar-right { display:none; }
-  .mobile-tabs { display:flex; background:var(--bg2); border-top:1px solid var(--border); flex-shrink:0; }
-  .mobile-tab { flex:1; text-align:center; padding:12px; font-size:13px; color:var(--dim); cursor:pointer; }
-  .mobile-tab.active { color:var(--accent); }
-  .role-cards { flex-direction:column; }
-  .story { padding:14px; }
+:root{--bg:#0f1115;--bg2:#1a1d24;--bg3:#242830;--border:#2e3340;--text:#e4e6eb;--dim:#8b8fa3;--accent:#6c8cff;--gold:#d4a853;--red:#e05555;--green:#5ec48a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+#home{flex:1;overflow-y:auto;padding:20px}
+.home-header{text-align:center;padding:30px 0 20px}
+.logo{font-size:36px;font-weight:800;letter-spacing:6px}
+.logo span{color:var(--accent)}
+.subtitle{color:var(--dim);font-size:13px;margin-top:8px}
+.role-cards{display:flex;gap:16px;max-width:700px;margin:0 auto;padding:20px 0}
+.role-card{flex:1;background:var(--bg2);border:2px solid var(--border);border-radius:16px;padding:24px;cursor:pointer;transition:all .2s;text-align:center}
+.role-card:hover,.role-card.active{border-color:var(--accent);background:var(--bg3)}
+.role-card .icon{font-size:40px;margin-bottom:12px}
+.role-card h3{font-size:18px;margin-bottom:8px}
+.role-card p{font-size:13px;color:var(--dim);line-height:1.5}
+.form-box{max-width:420px;margin:0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px}
+.form-box h2{font-size:16px;margin-bottom:16px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:13px;color:var(--dim);margin-bottom:6px}
+.form-group input,.form-group select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:15px;outline:none}
+.form-group .hint{font-size:12px;color:var(--dim);margin-top:4px}
+.btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--dim)}
+#game{flex:1;display:none;flex-direction:column;height:100vh}
+.topbar{height:52px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.room-badge{background:var(--gold);color:#1a1a1a;padding:6px 14px;border-radius:8px;font-weight:800;font-size:16px;letter-spacing:2px}
+.players-info{color:var(--dim);font-size:13px}
+.spacer{flex:1}
+.main{flex:1;display:flex;overflow:hidden}
+.sidebar-left{width:230px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.panel{border-bottom:1px solid var(--border);padding:14px}
+.panel h3{font-size:12px;color:var(--dim);margin-bottom:10px;letter-spacing:1px}
+.player-chip{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;margin-bottom:6px;background:var(--bg3);font-size:14px}
+.player-chip .dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.player-chip.ready .dot{background:var(--green)}
+.dm-tag{background:var(--gold);color:#1a1a1a;font-size:11px;padding:2px 6px;border-radius:4px;font-weight:700}
+.npc-item,.clue-item{font-size:13px;color:var(--dim);padding:8px 0;border-bottom:1px solid var(--border);line-height:1.5}
+.npc-item b{color:var(--text)}
+.story{flex:1;overflow-y:auto;padding:20px 24px}
+.story-empty{text-align:center;color:var(--dim);padding:60px 20px}
+.story-empty .big-icon{font-size:48px;margin-bottom:16px}
+.log-entry{margin-bottom:18px;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.log-entry .who{font-size:12px;margin-bottom:4px;font-weight:600}
+.log-entry.dm .who,.log-entry.dm_reply .who{color:var(--gold)}
+.log-entry.action .who{color:var(--accent)}
+.log-entry.dice .who{color:var(--green)}
+.log-entry.system .who{color:var(--red)}
+.log-entry .what{font-size:15px;line-height:1.7}
+.log-entry.dice .what{font-size:24px;font-weight:800;color:var(--green)}
+.sidebar-right{width:250px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.char-card{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:12px}
+.char-card h4{font-size:15px;margin-bottom:8px}
+.char-card .row{font-size:13px;color:var(--dim);margin-bottom:4px;line-height:1.5}
+.scenario-box{font-size:13px;line-height:1.6;color:var(--dim)}
+.scenario-box b{color:var(--text)}
+.input-bar{background:var(--bg2);border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:8px;align-items:center;flex-shrink:0}
+.input-bar input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;outline:none}
+.dice-btn{background:var(--gold);color:#1a1a1a;border:none;padding:12px 16px;border-radius:10px;cursor:pointer;font-weight:800;font-size:15px;white-space:nowrap}
+.send-btn{background:var(--accent);color:#fff;border:none;padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:600;font-size:15px}
+.vote-box{max-width:600px;margin:0 auto;padding:20px}
+.vote-option{background:var(--bg3);border:2px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s}
+.vote-option:hover{border-color:var(--accent)}
+.vote-option.selected{border-color:var(--green);background:rgba(94,196,138,.1)}
+.vote-option h4{font-size:16px;margin-bottom:6px}
+.vote-option p{font-size:13px;color:var(--dim);line-height:1.5}
+.vote-actions{display:flex;gap:12px;margin-top:16px}
+.ready-btn{background:var(--green);color:#1a1a1a;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px}
+.ready-btn.ready{background:var(--dim);color:#fff}
+.dm-action-btn{background:var(--gold);color:#1a1a1a;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px}
+.stat-box{max-width:500px;margin:0 auto;padding:20px}
+.stat-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.stat-row label{width:80px;font-size:14px}
+.stat-row input[type=range]{flex:1}
+.stat-row .val{width:30px;text-align:center;font-weight:700;color:var(--gold)}
+.stat-remaining{text-align:center;font-size:16px;margin:12px 0}
+.stat-remaining b{color:var(--gold);font-size:20px}
+.prob-bar{height:8px;background:var(--bg3);border-radius:4px;margin-top:4px;overflow:hidden}
+.prob-bar .fill{height:100%;background:var(--green);border-radius:4px}
+.dm-review-box{background:var(--bg3);border:2px solid var(--gold);border-radius:12px;padding:16px;margin:12px 0}
+.dm-review-box textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:14px;min-height:80px;resize:vertical}
+.mobile-tabs{display:none}
+@media(max-width:768px){
+  .sidebar-left,.sidebar-right{display:none}
+  .mobile-tabs{display:flex;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0}
+  .mobile-tab{flex:1;text-align:center;padding:12px;font-size:13px;color:var(--dim);cursor:pointer}
+  .mobile-tab.active{color:var(--accent)}
+  .role-cards{flex-direction:column}
+  .story{padding:14px}
 }
 </style>
 </head>
@@ -152,7 +102,7 @@ body {
 <div id="home">
   <div class="home-header">
     <div class="logo">骰<span>语</span></div>
-    <div class="subtitle">DiceTale v1.2.0 · 多人联机跑团主持台</div>
+    <div class="subtitle">DiceTale v1.3.1 · 多人联机跑团主持台</div>
   </div>
   <div class="role-cards">
     <div class="role-card active" id="cardDM" onclick="chooseRole('dm')">
@@ -166,10 +116,7 @@ body {
     <h2>🏠 创建主持房间</h2>
     <div class="form-group"><label>你的称呼</label><input id="createName" value="主持人"></div>
     <div class="form-group"><label>几个玩家？</label>
-      <select id="maxPlayers">
-        <option value="1">1个朋友</option><option value="2">2个朋友</option>
-        <option value="3" selected>3个朋友</option><option value="4">4个朋友</option>
-      </select>
+      <select id="maxPlayers"><option value="1">1个朋友</option><option value="2">2个朋友</option><option value="3" selected>3个朋友</option><option value="4">4个朋友</option></select>
     </div>
     <div class="form-group"><label>DeepSeek API Key（选填）</label>
       <input id="apiKey" type="password" placeholder="sk-...">
@@ -187,10 +134,10 @@ body {
       </div>
       <div id="customCharBox">
         <input id="joinName" placeholder="你的角色名，比如：王小明">
-        <input id="joinRole" placeholder="你的身份，比如：退休警察/大学生/厨师" style="margin-top:8px">
+        <input id="joinRole" placeholder="你的身份，比如：退休警察" style="margin-top:8px">
       </div>
       <div id="randomCharBox" style="display:none;background:var(--bg3);padding:14px;border-radius:8px;font-size:14px;line-height:1.6">
-        <div id="randomCharPreview">点上面"随机一个"按钮，AI给你抽个身份</div>
+        <div id="randomCharPreview">点上面"随机一个"按钮</div>
       </div>
     </div>
     <button class="btn btn-primary" onclick="joinRoom()">🎲 加入游戏</button>
@@ -231,202 +178,199 @@ body {
   </div>
   <div class="input-bar" id="playerBar" style="display:none">
     <button class="ready-btn" id="readyBtn" onclick="toggleReady()">✅ 准备</button>
-    <select class="dice-select" id="diceSides"><option value="20">d20</option><option value="6">d6</option><option value="100">d100</option></select>
     <button class="dice-btn" onclick="rollDice()">🎲</button>
     <input id="actionInput" placeholder="✊ 你要做什么？" onkeydown="if(event.key==='Enter')sendAction()">
     <button class="send-btn" onclick="sendAction()">行动</button>
   </div>
   <div class="mobile-tabs">
-    <div class="mobile-tab active" onclick="mobileTab('story',this)">📖</div>
-    <div class="mobile-tab" onclick="mobileTab('left',this)">👥</div>
-    <div class="mobile-tab" onclick="mobileTab('right',this)">🎭</div>
+    <div class="mobile-tab active">📖</div>
+    <div class="mobile-tab">👥</div>
+    <div class="mobile-tab">🎭</div>
   </div>
 </div>
 
 <script>
-let ws, myId, roomId, isDM, room = null, role = 'dm', selectedOption = -1;
+let ws=null,myId=null,roomId=null,isDM=false,room=null,role='dm',charMode='custom',selectedOption=-1;
+let statVals={str:1,agi:1,int:1,wil:1,con:1};
 
-let ws, myId, roomId, isDM, room = null, role = 'dm', selectedOption = -1, charMode = 'custom';
-
-const RANDOM_CHARS = [
-  {name:'王小明', role:'刚毕业的大学生', desc:'来这个城市找工作，口袋里只剩200块'},
-  {name:'李姐', role:'夜班出租车司机', desc:'开了10年夜班车，什么客人都见过'},
-  {name:'老张', role:'退休邮递员', desc:'在这片区送了30年信，谁家什么事都知道'},
-  {name:'小陈', role:'便利店店员', desc:'通宵上班，今晚店里只有你一个人'},
-  {name:'赵哥', role:'装修工人', desc:'刚干完一单活，正在等下一单'},
-  {name:'小周', role:'外卖骑手', desc:'今晚跑到第40单了，腿都酸了'},
-  {name:'孙叔', role:'小区保安', desc:'值夜班，巡逻时听到奇怪的声音'},
-  {name:'阿琳', role:'咖啡店老板', desc:'刚关门，正在擦最后一个杯子'},
+const RANDOM_CHARS=[
+  {name:'王小明',role:'刚毕业的大学生',desc:'来这个城市找工作'},
+  {name:'李姐',role:'夜班出租车司机',desc:'开了10年夜班车'},
+  {name:'老张',role:'退休邮递员',desc:'在这片区送了30年信'},
+  {name:'小陈',role:'便利店店员',desc:'通宵上班'},
+  {name:'赵哥',role:'装修工人',desc:'刚干完一单活'},
+  {name:'小周',role:'外卖骑手',desc:'今晚跑到第40单'},
+  {name:'孙叔',role:'小区保安',desc:'值夜班'},
+  {name:'阿琳',role:'咖啡店老板',desc:'刚关门打烊'}
 ];
 
-let statVals = { str:1, agi:1, int:1, wil:1, con:1 };
-function remainingPoints() {
-  const total = room?.statPoints || 10;
-  const used = Object.values(statVals).reduce((a,b)=>a+b,0);
-  return total - used;
+function chooseRole(r){
+  role=r;
+  document.getElementById('cardDM').classList.toggle('active',r==='dm');
+  document.getElementById('cardPlayer').classList.toggle('active',r==='player');
+  document.getElementById('formDM').style.display=r==='dm'?'':'none';
+  document.getElementById('formPlayer').style.display=r==='player'?'':'none';
 }
-function updateStatDisplay() {
-  document.getElementById('statStrVal').textContent = statVals.str;
-  document.getElementById('statAgiVal').textContent = statVals.agi;
-  document.getElementById('statIntVal').textContent = statVals.int;
-  document.getElementById('statWilVal').textContent = statVals.wil;
-  document.getElementById('statConVal').textContent = statVals.con;
-  const rem = remainingPoints();
-  const el = document.getElementById('statRem');
-  if(el) el.innerHTML = `剩余点数：<b>${rem}</b> / ${room?.statPoints||10}`;
+function setMode(m){
+  charMode=m;
+  document.getElementById('modeCustom').className=m==='custom'?'btn btn-primary':'btn btn-ghost';
+  document.getElementById('modeRandom').className=m==='random'?'btn btn-primary':'btn btn-ghost';
+  document.getElementById('customCharBox').style.display=m==='custom'?'':'none';
+  document.getElementById('randomCharBox').style.display=m==='random'?'':'none';
+  if(m==='random')randomChar();
 }
-function setStat(k, v) { statVals[k] = parseInt(v); updateStatDisplay(); }
-function saveStats() {
-  if(remainingPoints() !== 0) { alert(`还剩${remainingPoints()}点没分配完！`); return; }
-  ws.send(JSON.stringify({ type:'set_stats', stats: {...statVals} }));
+function randomChar(){
+  const c=RANDOM_CHARS[Math.floor(Math.random()*RANDOM_CHARS.length)];
+  document.getElementById('randomCharPreview').innerHTML=`<b style="color:var(--gold)">${c.name}</b><br>${c.role}<br><span style="color:var(--dim);font-size:13px">${c.desc}</span>`;
 }
-function setDmPoints() {
-  const p = parseInt(document.getElementById('dmPoints').value);
-  ws.send(JSON.stringify({ type:'set_stat_points', points: p }));
-}
-
-function setMode(m) {
-  charMode = m;
-  document.getElementById('modeCustom').className = m==='custom' ? 'btn btn-primary' : 'btn btn-ghost';
-  document.getElementById('modeRandom').className = m==='random' ? 'btn btn-primary' : 'btn btn-ghost';
-  document.getElementById('customCharBox').style.display = m==='custom' ? '' : 'none';
-  document.getElementById('randomCharBox').style.display = m==='random' ? '' : 'none';
-  if(m==='random') randomChar();
-}
-function randomChar() {
-  const c = RANDOM_CHARS[Math.floor(Math.random()*RANDOM_CHARS.length)];
-  document.getElementById('randomCharPreview').innerHTML = `<b style="color:var(--gold)">${c.name}</b><br>${c.role}<br><span style="color:var(--dim);font-size:13px">${c.desc}</span>`;
-}
-function chooseRole(r) {
-  role = r;
-  document.getElementById('cardDM').classList.toggle('active', r==='dm');
-  document.getElementById('cardPlayer').classList.toggle('active', r==='player');
-  document.getElementById('formDM').style.display = r==='dm' ? '' : 'none';
-  document.getElementById('formPlayer').style.display = r==='player' ? '' : 'none';
-}
-function connect() {
-  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  ws = new WebSocket(proto + '//' + location.host + '/ws');
-  ws.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
+function connect(){
+  const proto=location.protocol==='https:'?'wss:':'ws:';
+  ws=new WebSocket(proto+'//'+location.host+'/ws');
+  ws.onmessage=function(e){
+    const msg=JSON.parse(e.data);
     if(msg.type==='created'){roomId=msg.roomId;myId=msg.myId;isDM=true;}
     if(msg.type==='joined'){roomId=msg.roomId;myId=msg.myId;isDM=false;}
     if(msg.type==='state'){room=msg.data;render();}
     if(msg.type==='error'){alert(msg.msg);}
   };
 }
-function createRoom() {
-  const name = document.getElementById('createName').value || '主持人';
-  const apiKey = document.getElementById('apiKey').value;
-  const maxP = parseInt(document.getElementById('maxPlayers').value)||3;
+function createRoom(){
+  const name=document.getElementById('createName').value||'主持人';
+  const apiKey=document.getElementById('apiKey').value;
+  const maxP=parseInt(document.getElementById('maxPlayers').value)||3;
   connect();
-  ws.onopen = () => { ws.send(JSON.stringify({type:'create',name,apiKey,maxPlayers:maxP+1})); setTimeout(showGame,500); };
+  ws.onopen=function(){ws.send(JSON.stringify({type:'create',name:name,apiKey:apiKey,maxPlayers:maxP+1}));setTimeout(showGame,500);};
 }
-function joinRoom() {
-  const rid = document.getElementById('joinRoom').value.toUpperCase().trim();
+function joinRoom(){
+  const rid=document.getElementById('joinRoom').value.toUpperCase().trim();
   if(!rid||rid.length!==4){alert('房间号4位字母');return;}
-  let name, roleName;
+  let name,roleName;
   if(charMode==='custom'){
-    name = document.getElementById('joinName').value.trim();
-    roleName = document.getElementById('joinRole').value.trim();
+    name=document.getElementById('joinName').value.trim();
+    roleName=document.getElementById('joinRole').value.trim();
     if(!name){alert('填角色名');return;}
-  } else {
-    const txt = document.getElementById('randomCharPreview').textContent;
-    name = txt.split('\n')[0];
-    roleName = txt.split('\n')[1]||'普通人';
+  }else{
+    const txt=document.getElementById('randomCharPreview').textContent;
+    name=txt.split('\n')[0];
+    roleName=txt.split('\n')[1]||'普通人';
   }
   connect();
-  ws.onopen = () => { ws.send(JSON.stringify({type:'join',name,roomId:rid,role:roleName})); setTimeout(showGame,500); };
+  ws.onopen=function(){ws.send(JSON.stringify({type:'join',name:name,roomId:rid,role:roleName}));setTimeout(showGame,500);};
 }
 function showGame(){document.getElementById('home').style.display='none';document.getElementById('game').style.display='flex';}
 function dmScene(){const v=document.getElementById('dmInput').value.trim();if(!v)return;ws.send(JSON.stringify({type:'dm_scene',text:v}));document.getElementById('dmInput').value='';}
 function sendAction(){const v=document.getElementById('actionInput').value.trim();if(!v)return;ws.send(JSON.stringify({type:'player_action',text:v}));document.getElementById('actionInput').value='';}
-function rollDice(){const s=parseInt(document.getElementById('diceSides').value);ws.send(JSON.stringify({type:'dice',sides:s}));}
+function rollDice(){ws.send(JSON.stringify({type:'dice',sides:20}));}
 function toggleReady(){ws.send(JSON.stringify({type:'player_ready'}));}
 function genOpts(){ws.send(JSON.stringify({type:'generate_options'}));}
+function setDmPoints(){const p=parseInt(document.getElementById('dmPoints').value);ws.send(JSON.stringify({type:'set_stat_points',points:p}));}
 function voteOption(i){selectedOption=i;ws.send(JSON.stringify({type:'vote_scenario',optionIndex:i}));render();}
 function approve(yes){ws.send(JSON.stringify({type:'approve_scenario',approve:yes}));}
+function remainingPoints(){const total=room?room.statPoints||10:10;const used=Object.values(statVals).reduce(function(a,b){return a+b},0);return total-used;}
+function setStat(k,v){statVals[k]=parseInt(v);updateStatDisplay();}
+function updateStatDisplay(){
+  const ids={str:'statStrVal',agi:'statAgiVal',int:'statIntVal',wil:'statWilVal',con:'statConVal'};
+  for(const k in ids){const el=document.getElementById(ids[k]);if(el)el.textContent=statVals[k];}
+  const rem=document.getElementById('statRem');
+  if(rem)rem.innerHTML='剩余点数：<b>'+remainingPoints()+'</b> / '+(room?room.statPoints||10:10);
+}
+function saveStats(){
+  if(remainingPoints()!==0){alert('还剩'+remainingPoints()+'点没分配完！');return;}
+  ws.send(JSON.stringify({type:'set_stats',stats:Object.assign({},statVals)}));
+}
 
-function render() {
+function render(){
   if(!room)return;
   document.getElementById('topRoom').textContent=room.id;
-  document.getElementById('topPlayers').textContent=`${room.players.length}/${room.maxPlayers}人`;
+  document.getElementById('topPlayers').textContent=room.players.length+'/'+room.maxPlayers+'人';
   document.getElementById('btnGenOpts').style.display=(isDM&&room.state==='lobby')?'':'none';
+  document.getElementById('dmPointsPanel').style.display=isDM?'':'none';
 
-  // 玩家列表
-  document.getElementById('playerList').innerHTML=room.players.map(p=>
-    `<div class="player-chip ${p.ready?'ready':''}"><span class="dot"></span>${p.name}${p.isDM?'<span class="dm-tag">DM</span>':''}${p.ready?' ✓':''}</div>`
-  ).join('');
+  document.getElementById('playerList').innerHTML=room.players.map(function(p){
+    return '<div class="player-chip '+(p.ready?'ready':'')+'"><span class="dot"></span>'+p.name+(p.isDM?'<span class="dm-tag">DM</span>':'')+(p.ready?' ✓':'')+'</div>';
+  }).join('');
 
-  // NPC/线索
-  if(room.scenario?.npcs?.length){document.getElementById('npcPanel').style.display='';document.getElementById('npcList').innerHTML=room.scenario.npcs.map(n=>`<div class="npc-item"><b>${n.name}</b><br>${n.description}</div>`).join('');}
-  if(room.scenario?.clues?.length){document.getElementById('cluePanel').style.display='';document.getElementById('clueList').innerHTML=room.scenario.clues.map(c=>`<div class="clue-item">🔍 ${c}</div>`).join('');}
-
-  // 掷骰记录
-  const dl=room.log.filter(l=>l.type==='dice').slice(-10).reverse();
-  document.getElementById('diceList').innerHTML=dl.length?dl.map(d=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--dim)">${d.player}</span><span style="color:var(--gold);font-weight:700;margin-left:6px">d${d.sides}=${d.roll}</span></div>`).join(''):'<div style="font-size:12px;color:var(--dim)">还没人掷骰</div>';
-
-  // 剧本
-  if(room.scenario){document.getElementById('scenarioPanel').style.display='';document.getElementById('scenarioInfo').innerHTML=`<b style="color:var(--text)">《${room.scenario.title}》</b><br><br>${room.scenario.background||''}<br><br><span style="color:var(--gold)">📍 ${room.scenario.setting||''}</span>`;}
-
-  // 我的角色
-  const me=room.players.find(p=>p.id===myId);
-  if(me){const ci=room.scenario?.characters?.[me.id-1];
-    const roleDisplay = me.customRole || ci?.role || '冒险者';
-    let statsHtml = '';
-    if(me.stats){
-      const s = me.stats;
-      statsHtml = `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;line-height:1.8">
-        💪力量<span style="color:var(--gold)">${s.str}</span> 🏃敏捷<span style="color:var(--gold)">${s.agi}</span><br>
-        🧠智力<span style="color:var(--gold)">${s.int}</span> 🛡️意志<span style="color:var(--gold)">${s.wil}</span><br>
-        ❤️体质<span style="color:var(--gold)">${s.con}</span>
-      </div>`;
-    }
-    document.getElementById('myChar').innerHTML=`<div class="char-card"><h4>${me.name}${me.isDM?'（DM）':''}</h4>${me.isDM?'<div class="row">讲故事和裁定</div>':`<div class="row"><b style="color:var(--text)">身份：</b>${roleDisplay}</div>${ci?.goal?`<div class="row"><b style="color:var(--text)">目标：</b>${ci.goal}</div>`:''}${ci?.description?`<div class="row" style="margin-top:8px;line-height:1.6"><b style="color:var(--text)">你的故事：</b><br>${ci.description}</div>`:''}${statsHtml}`}</div>`;
+  if(room.scenario&&room.scenario.npcs&&room.scenario.npcs.length){
+    document.getElementById('npcPanel').style.display='';
+    document.getElementById('npcList').innerHTML=room.scenario.npcs.map(function(n){return '<div class="npc-item"><b>'+n.name+'</b><br>'+n.description+'</div>';}).join('');
+  }
+  if(room.scenario&&room.scenario.clues&&room.scenario.clues.length){
+    document.getElementById('cluePanel').style.display='';
+    document.getElementById('clueList').innerHTML=room.scenario.clues.map(function(c){return '<div class="clue-item">🔍 '+c+'</div>';}).join('');
+  }
+  if(room.scenario){
+    document.getElementById('scenarioPanel').style.display='';
+    document.getElementById('scenarioInfo').innerHTML='<b style="color:var(--text)">《'+room.scenario.title+'》</b><br><br>'+(room.scenario.background||'')+'<br><br><span style="color:var(--gold)">📍 '+(room.scenario.setting||'')+'</span>';
   }
 
-  // 底部栏
+  const dl=room.log.filter(function(l){return l.type==='dice'}).slice(-10).reverse();
+  document.getElementById('diceList').innerHTML=dl.length?dl.map(function(d){return '<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--dim)">'+d.player+'</span><span style="color:var(--gold);font-weight:700;margin-left:6px">d'+d.sides+'='+d.roll+'</span></div>';}).join(''):'<div style="font-size:12px;color:var(--dim)">还没人掷骰</div>';
+
+  const me=room.players.find(function(p){return p.id===myId});
+  if(me){
+    const ci=room.scenario?room.scenario.characters?room.scenario.characters[me.id-1]:null:null;
+    const roleDisplay=me.customRole||(ci?ci.role:'冒险者');
+    let statsHtml='';
+    if(me.stats){
+      const s=me.stats;
+      statsHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;line-height:1.8">💪力量<span style="color:var(--gold)">'+s.str+'</span> 🏃敏捷<span style="color:var(--gold)">'+s.agi+'</span> 🧠智力<span style="color:var(--gold)">'+s.int+'</span> 🧠理智<span style="color:var(--gold)">'+s.wil+'</span> ❤️体质<span style="color:var(--gold)">'+s.con+'</span></div>';
+    }
+    let inner='<div class="char-card"><h4>'+me.name+(me.isDM?'（DM）':'')+'</h4>';
+    if(me.isDM){inner+='<div class="row">讲故事和裁定</div>';}
+    else{
+      inner+='<div class="row"><b style="color:var(--text)">身份：</b>'+roleDisplay+'</div>';
+      if(ci&&ci.goal)inner+='<div class="row"><b style="color:var(--text)">目标：</b>'+ci.goal+'</div>';
+      if(ci&&ci.description)inner+='<div class="row" style="margin-top:8px;line-height:1.6"><b style="color:var(--text)">你的故事：</b><br>'+ci.description+'</div>';
+      inner+=statsHtml;
+    }
+    inner+='</div>';
+    document.getElementById('myChar').innerHTML=inner;
+  }
+
   const inGame=room.state==='playing';
   document.getElementById('dmBar').style.display=(isDM&&inGame)?'flex':'none';
   document.getElementById('playerBar').style.display=(!isDM&&(room.state==='lobby'||inGame))?'flex':'none';
   const readyBtn=document.getElementById('readyBtn');
-  if(me){readyBtn.classList.toggle('ready',!!me.ready);readyBtn.textContent=me.ready?'✅ 已准备':'✅ 准备';}
+  if(me&&readyBtn){readyBtn.classList.toggle('ready',!!me.ready);readyBtn.textContent=me.ready?'✅ 已准备':'✅ 准备';}
 
-  // DM设置面板
-  document.getElementById('dmPointsPanel').style.display = isDM ? '' : 'none';
-
-  // 剧情流
   const storyEl=document.getElementById('story');
-  // 属性分配面板
-  if(room.state==='lobby' && !isDM && !me?.stats){
-    storyEl.innerHTML=`<div class="stat-box"><h3 style="text-align:center;margin-bottom:16px">📊 分配你的属性（共${room.statPoints||10}点）</h3>
-      <div class="stat-row"><label>💪 力量</label><input type="range" min="1" max="10" value="${statVals.str}" oninput="setStat('str',this.value);updateStatDisplay()"><span class="val" id="statStrVal">${statVals.str}</span></div>
-      <div class="stat-row"><label>🏃 敏捷</label><input type="range" min="1" max="10" value="${statVals.agi}" oninput="setStat('agi',this.value);updateStatDisplay()"><span class="val" id="statAgiVal">${statVals.agi}</span></div>
-      <div class="stat-row"><label>🧠 智力</label><input type="range" min="1" max="10" value="${statVals.int}" oninput="setStat('int',this.value);updateStatDisplay()"><span class="val" id="statIntVal">${statVals.int}</span></div>
-      <div class="stat-row"><label>🛡️ 意志</label><input type="range" min="1" max="10" value="${statVals.wil}" oninput="setStat('wil',this.value);updateStatDisplay()"><span class="val" id="statWilVal">${statVals.wil}</span></div>
-      <div class="stat-row"><label>❤️ 体质</label><input type="range" min="1" max="10" value="${statVals.con}" oninput="setStat('con',this.value);updateStatDisplay()"><span class="val" id="statConVal">${statVals.con}</span></div>
-      <div class="stat-remaining" id="statRem"></div>
-      <button class="btn btn-primary" onclick="saveStats()">✅ 确认分配</button>
-    </div>`;
+  // 属性分配
+  if(room.state==='lobby'&&!isDM&&!(me&&me.stats)){
+    storyEl.innerHTML='<div class="stat-box"><h3 style="text-align:center;margin-bottom:16px">📊 分配你的属性（共'+(room.statPoints||10)+'点）</h3>'+
+      '<div class="stat-row"><label>💪 力量</label><input type="range" min="1" max="10" value="'+statVals.str+'" oninput="setStat(\'str\',this.value)"><span class="val" id="statStrVal">'+statVals.str+'</span></div>'+
+      '<div class="stat-row"><label>🏃 敏捷</label><input type="range" min="1" max="10" value="'+statVals.agi+'" oninput="setStat(\'agi\',this.value)"><span class="val" id="statAgiVal">'+statVals.agi+'</span></div>'+
+      '<div class="stat-row"><label>🧠 智力</label><input type="range" min="1" max="10" value="'+statVals.int+'" oninput="setStat(\'int\',this.value)"><span class="val" id="statIntVal">'+statVals.int+'</span></div>'+
+      '<div class="stat-row"><label>🧠 理智</label><input type="range" min="1" max="10" value="'+statVals.wil+'" oninput="setStat(\'wil\',this.value)"><span class="val" id="statWilVal">'+statVals.wil+'</span></div>'+
+      '<div class="stat-row"><label>❤️ 体质</label><input type="range" min="1" max="10" value="'+statVals.con+'" oninput="setStat(\'con\',this.value)"><span class="val" id="statConVal">'+statVals.con+'</span></div>'+
+      '<div class="stat-remaining" id="statRem"></div>'+
+      '<button class="btn btn-primary" onclick="saveStats()">✅ 确认分配</button></div>';
     updateStatDisplay();
-  } else if(room.state==='voting'&&room.options){
-    storyEl.innerHTML=`<div class="vote-box"><h3 style="margin-bottom:16px">🗳️ 投票选剧本（${Object.keys(room.votes).length}/${room.players.filter(p=>!p.isDM).length}已投）</h3>`+
-      room.options.map((o,i)=>`<div class="vote-option ${selectedOption===i?'selected':''}" onclick="${isDM?'':`voteOption(${i})`}"><h4>${o.title}</h4><p><b style="color:var(--gold)">${o.theme}</b> — ${o.outline}</p></div>`).join('')+
-      `</div>`;
-  } else if(room.state==='preview'&&room.scenario){
-    storyEl.innerHTML=`<div class="vote-box"><h3 style="margin-bottom:16px">📖 剧本大纲</h3><div style="background:var(--bg3);padding:16px;border-radius:10px;margin-bottom:16px"><b style="font-size:16px">《${room.scenario.title}》</b><br><br>${room.scenario.background||''}</div><p style="text-align:center;margin-bottom:12px">${Object.keys(room.approveVotes).length}/${room.players.filter(p=>!p.isDM).length} 已投票</p><div class="vote-actions"><button class="btn btn-approve" onclick="approve(true)">✅ 接受，开始玩</button><button class="btn btn-reject" onclick="approve(false)">🔄 重roll</button></div></div>`;
-  } else if(room.log.length===0){
-    storyEl.innerHTML=`<div class="story-empty"><div class="big-icon">🎭</div><p style="font-size:16px;margin-bottom:8px">${isDM?'等玩家到齐，点"生成剧本选项"':'等DM生成剧本选项...'}</p><p style="font-size:13px">${isDM?'玩家点准备后，生成3个选项大家投票选':'你点"准备"按钮表示准备好了'}</p></div>`;
-  } else {
-    storyEl.innerHTML=room.log.map(l=>{
+  }
+  // 投票选剧本
+  else if(room.state==='voting'&&room.options){
+    storyEl.innerHTML='<div class="vote-box"><h3 style="margin-bottom:16px">🗳️ 投票选剧本</h3>'+
+      room.options.map(function(o,i){
+        return '<div class="vote-option '+(selectedOption===i?'selected':'')+'" onclick="'+(isDM?'':'voteOption('+i+')')+'"><h4>'+o.title+'</h4><p><b style="color:var(--gold)">'+o.theme+'</b> — '+o.outline+'</p></div>';
+      }).join('')+'</div>';
+  }
+  // 预览剧本
+  else if(room.state==='preview'&&room.scenario){
+    storyEl.innerHTML='<div class="vote-box"><h3 style="margin-bottom:16px">📖 剧本大纲</h3><div style="background:var(--bg3);padding:16px;border-radius:10px;margin-bottom:16px"><b style="font-size:16px">《'+room.scenario.title+'》</b><br><br>'+(room.scenario.background||'')+'</div><div class="vote-actions"><button class="btn btn-primary" onclick="approve(true)">✅ 接受开始</button><button class="btn" style="background:var(--red);color:#fff" onclick="approve(false)">🔄 重roll</button></div></div>';
+  }
+  // 空状态
+  else if(room.log.length===0){
+    storyEl.innerHTML='<div class="story-empty"><div class="big-icon">🎭</div><p style="font-size:16px;margin-bottom:8px">'+(isDM?'等玩家到齐，点"生成剧本选项"':'等DM生成剧本选项...')+'</p><p style="font-size:13px">'+(isDM?'玩家点准备后生成选项':'你点"准备"表示准备好了')+'</p></div>';
+  }
+  // 正常剧情流
+  else{
+    storyEl.innerHTML=room.log.map(function(l){
       const wm={dm:'📢 主持人',dm_reply:'📢 主持人',action:l.player+' 的行动',dice:'🎲 '+l.player+' 掷骰',system:'⚡ 系统'};
-      const tm={dm:l.text,dm_reply:l.text,action:l.text,dice:`d${l.sides} = ${l.roll}`,system:l.text};
-      return `<div class="log-entry ${l.type}"><div class="who">${wm[l.type]||''}</div><div class="what">${tm[l.type]||''}</div></div>`;
+      const tm={dm:l.text,dm_reply:l.text,action:l.text,dice:'d'+l.sides+' = '+l.roll,system:l.text};
+      return '<div class="log-entry '+l.type+'"><div class="who">'+(wm[l.type]||'')+'</div><div class="what">'+(tm[l.type]||'')+'</div></div>';
     }).join('');
   }
   storyEl.scrollTop=storyEl.scrollHeight;
 }
-function mobileTab(t,el){document.querySelectorAll('.mobile-tab').forEach(e=>e.classList.remove('active'));el.classList.add('active');document.getElementById('sidebarLeft').classList.remove('show');document.getElementById('sidebarRight').classList.remove('show');if(t==='left')document.getElementById('sidebarLeft').classList.add('show');if(t==='right')document.getElementById('sidebarRight').classList.add('show');}
 </script>
 </body>
 </html>
