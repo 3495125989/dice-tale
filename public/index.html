@@ -261,6 +261,10 @@ body {
         <h3>🔍 已发现线索</h3>
         <div id="clueList"></div>
       </div>
+      <div class="panel">
+        <h3>🎲 掷骰记录</h3>
+        <div id="diceList"></div>
+      </div>
     </div>
 
     <!-- 中间剧情流 -->
@@ -431,6 +435,14 @@ function render() {
       `<div class="clue-item">🔍 ${c}</div>`
     ).join('');
   }
+  // 掷骰记录（从log里提取所有dice类型）
+  const diceLogs = room.log.filter(l => l.type === 'dice').slice(-10).reverse();
+  document.getElementById('diceList').innerHTML = diceLogs.length ? diceLogs.map(d =>
+    `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span style="color:var(--dim)">${d.player}</span>
+      <span style="color:var(--gold);font-weight:700;margin-left:6px">d${d.sides}=${d.roll}</span>
+    </div>`
+  ).join('') : '<div style="font-size:12px;color:var(--dim);padding:8px 0">还没有人掷骰</div>';
   // 剧本
   if(room.scenario) {
     document.getElementById('scenarioPanel').style.display='';
