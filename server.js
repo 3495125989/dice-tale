@@ -298,7 +298,12 @@ ${recent}
       body: JSON.stringify({ model: room.aiModel, messages: [{ role: 'user', content: prompt }], temperature: 0.8, max_tokens: 300 }),
     });
     const data = await res.json();
-    room.log.push({ type: 'dm_reply', text: data.choices[0].message.content.trim(), time: Date.now() });
+    const result = data.choices[0].message.content.trim();
+    // 发给DM审核，不直接发出去
+    const dm = room.players.find(p => p.isDM);
+    if (dm && dm.ws) {
+      dm.ws.send(JSON.stringify({ type: 'dm_review', text: result, player: player.name }));
+    }
   } catch {}
   room.pendingDice = null;
   broadcastState(room);
@@ -336,6 +341,8 @@ characters正好${playerCount}个，每个都有独立的sideQuest支线任务�
   if (!res.ok) throw new Error('API错误');
   const data = await res.json();
   let text = data.choices[0].message.content.trim();
+  // 清理控制字符
+  text = text.replace(/[\x00-\x1F\x7F]/g, '');
   const match = text.match(/\{[\s\S]*\}/);
   if (match) text = match[0];
   room.scenario = JSON.parse(text);
