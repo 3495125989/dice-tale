@@ -20,15 +20,18 @@ function createRoom() {
   const id = genRoomId();
   rooms.set(id, {
     id,
-    state: 'lobby', // lobby | playing | ended
-    players: [],    // {ws, id, name, isDM, character}
-    scenario: null, // AI生成的剧本
-    log: [],        // 剧情流
+    state: 'lobby', // lobby | voting | preview | playing | ended
+    players: [],
+    scenario: null,
+    log: [],
     turn: 0,
     maxPlayers: 4,
     apiKey: '',
     aiBaseUrl: 'https://api.deepseek.com',
     aiModel: 'deepseek-chat',
+    options: null,        // 剧本选项 [{title, theme, outline}]
+    votes: {},            // {playerId: optionIndex}
+    approveVotes: {},     // {playerId: true/false}
   });
   return rooms.get(id);
 }
@@ -172,6 +175,82 @@ wss.on('connection', (ws) => {
       case 'start': {
         if (!me || !me.isDM) return;
         room.state = 'playing';
+        room.log.push({ type: 'system', text: '🎮 游戏开始！', time: Date.now() });
+        broadcastState(room);
+        break;
+      }
+      // 玩家点准备
+      case 'player_ready': {
+        if (!me || me.isDM) return;
+        me.ready = !me.ready;
+        broadcastState(room);
+        break;
+      }
+      // DM生成剧本选项
+      case 'generate_options': {
+        if (!me || !me.isDM) return;
+        const pCount = room.players.filter(p => !p.isDM).length;
+        room.log.push({ type: 'system', text: '🎲 AI正在生成3个剧本选项...', time: Date.now() });
+        broadcastState(room);
+        genOptions(room, pCount).then(() => {
+          room.state = 'voting';
+          room.votes = {};
+          broadcastState(room);
+        }).catch(err => {
+          room.log.push({ type: 'system', text: '生成失败: ' + err.message, time: Date.now() });
+          broadcastState(room);
+        });
+        break;
+      }
+      // 玩家投票选剧本
+      case 'vote_scenario': {
+        if (!me || me.isDM) return;
+        room.votes[me.id] = msg.optionIndex;
+        // 如果所有玩家都投了，统计结果
+        const players = room.players.filter(p => !p.isDM);
+        const voted = Object.keys(room.votes).length;
+        if (voted >= players.length) {
+          // 统计票数
+          const counts = {};
+          Object.values(room.votes).forEach(i => counts[i] = (counts[i]||0)+1);
+          let best = 0, max = 0;
+          Object.entries(counts).forEach(([i, c]) => { if(c > max) { max = c; best = parseInt(i); } });
+          // 生成完整剧本
+          room.log.push({ type: 'system', text: `📖 投票结果：选中了《${room.options[best].title}》，正在生成完整剧本...`, time: Date.now() });
+          broadcastState(room);
+          generateScenarioFromOption(room, room.options[best], players.length).then(() => {
+            room.state = 'preview';
+            room.approveVotes = {};
+            broadcastState(room);
+          }).catch(err => {
+            room.log.push({ type: 'system', text: '剧本生成失败: ' + err.message, time: Date.now() });
+            broadcastState(room);
+          });
+        } else {
+          broadcastState(room);
+        }
+        break;
+      }
+      // 玩家投票接受/重roll
+      case 'approve_scenario': {
+        if (!me || me.isDM) return;
+        room.approveVotes[me.id] = msg.approve; // true=接受, false=重roll
+        const players = room.players.filter(p => !p.isDM);
+        const voted = Object.keys(room.approveVotes).length;
+        if (voted >= players.length) {
+          const approved = Object.values(room.approveVotes).filter(v => v).length;
+          if (approved > players.length / 2) {
+            room.state = 'playing';
+            room.log.push({ type: 'system', text: '✅ 大家接受了剧本，游戏开始！', time: Date.now() });
+          } else {
+            room.state = 'lobby';
+            room.options = null;
+            room.scenario = null;
+            room.votes = {};
+            room.approveVotes = {};
+            room.log.push({ type: 'system', text: '🔄 大家想重roll，DM重新生成选项', time: Date.now() });
+          }
+        }
         broadcastState(room);
         break;
       }
@@ -390,6 +469,71 @@ ${logContext}
   const data = await res.json();
   room.log.push({ type: 'dm_reply', text: data.choices[0].message.content.trim(), time: Date.now() });
   broadcastState(room);
+}
+
+// 生成3个剧本选项
+async function genOptions(room, playerCount) {
+  if (!room.apiKey) throw new Error('未设置API Key');
+  const prompt = `为一个${playerCount}人跑团生成3个不同题材的剧本选项。
+每个选项给一个简短大纲（50字内）。输出JSON格式：
+[{"title":"剧本名","theme":"题材","outline":"简短大纲50字"}]
+3个选项题材要完全不同（比如：悬疑/恐怖/奇幻）。`;
+
+  const res = await fetch(room.aiBaseUrl + '/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + room.apiKey },
+    body: JSON.stringify({ model: room.aiModel, messages: [{ role: 'user', content: prompt }], temperature: 1.0, max_tokens: 500 }),
+  });
+  if (!res.ok) throw new Error('API错误');
+  const data = await res.json();
+  let text = data.choices[0].message.content.trim();
+  const match = text.match(/\[[\s\S]*\]/);
+  if (match) text = match[0];
+  room.options = JSON.parse(text);
+}
+
+// 根据选中的选项生成完整剧本
+async function generateScenarioFromOption(room, option, playerCount) {
+  if (!room.apiKey) throw new Error('未设置API Key');
+  const prompt = `你是TRPG跑团主持人。请为一个${playerCount}人跑团生成完整剧本。
+题材方向：${option.theme}
+剧本名参考：${option.title}
+大纲参考：${option.outline}
+
+请输出JSON格式（不要有多余文字）：
+{
+  "title": "剧本名称",
+  "background": "故事背景描述（200字左右）",
+  "setting": "当前场景描述（100字左右）",
+  "characters": [{
+    "name": "角色名",
+    "role": "具体身份（不要写'冒险者'，要写比如：失忆侦探/退休警察/失踪者的妹妹/神秘术士）",
+    "description": "这个角色的背景故事（100字左右，要让玩家读完就知道自己是谁、为什么在这里、有什么秘密）",
+    "goal": "具体的个人目标（不要写'活下去'，要写比如：找到失踪的妹妹/洗清杀人嫌疑/揭开自己失忆的真相）"
+  }],
+  "npcs": [{"name":"NPC名","description":"NPC描述","relation":"与玩家的关系"}],
+  "clues": ["线索1","线索2","线索3"],
+  "winCondition": "胜利条件",
+  "twist": "剧情转折（DM专用）"
+}
+
+重要要求：
+1. characters数组正好${playerCount}个角色
+2. 每个角色的role必须是具体身份，不能是"冒险者/幸存者"这种笼统词
+3. description要写一段完整的小故事，玩家读完要知道自己是谁
+4. goal必须和剧情相关，不能是"活下去"这种空话`;
+
+  const res = await fetch(room.aiBaseUrl + '/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + room.apiKey },
+    body: JSON.stringify({ model: room.aiModel, messages: [{ role: 'user', content: prompt }], temperature: 0.8, max_tokens: 3000 }),
+  });
+  if (!res.ok) throw new Error('API错误');
+  const data = await res.json();
+  let text = data.choices[0].message.content.trim();
+  const match = text.match(/\{[\s\S]*\}/);
+  if (match) text = match[0];
+  room.scenario = JSON.parse(text);
 }
 
 server.listen(PORT, () => {
