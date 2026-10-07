@@ -149,7 +149,8 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
     <span class="room-badge" id="topRoom">----</span>
     <span class="players-info" id="topPlayers"></span>
     <div class="spacer"></div>
-    <button id="btnGenOpts" class="dm-action-btn" onclick="genOpts()" style="display:none">🎲 生成剧本选项</button>
+    <button id="btnStartOutlines" class="dm-action-btn" onclick="startOutlines()" style="display:none">✏️ 开始写大纲</button>
+    <button id="btnGenOpening" class="dm-action-btn" onclick="genOpening()" style="display:none;background:var(--green);color:#1a1a1a">🎬 生成开场白</button>
   </div>
   <div class="main">
     <div class="sidebar-left" id="sidebarLeft">
@@ -262,7 +263,15 @@ function dmScene(){const v=document.getElementById('dmInput').value.trim();if(!v
 function sendAction(){const v=document.getElementById('actionInput').value.trim();if(!v)return;ws.send(JSON.stringify({type:'player_action',text:v}));document.getElementById('actionInput').value='';}
 function rollDice(){ws.send(JSON.stringify({type:'dice',sides:20}));}
 function toggleReady(){ws.send(JSON.stringify({type:'player_ready'}));}
-function genOpts(){ws.send(JSON.stringify({type:'generate_options'}));}
+function genOpts(){alert('改用新流程了！')}
+function startOutlines(){ws.send(JSON.stringify({type:'start_outlines'}))}
+function submitOutline(){
+  const v=document.getElementById('outlineInput').value.trim();
+  if(!v){alert('写点什么再提交');return;}
+  ws.send(JSON.stringify({type:'submit_outline',text:v}));
+}
+function voteOutline(id){ws.send(JSON.stringify({type:'vote_outline',outlineId:id}));}
+function genOpening(){ws.send(JSON.stringify({type:'gen_opening'}))}
 function setDmPoints(){const p=parseInt(document.getElementById('dmPoints').value);ws.send(JSON.stringify({type:'set_stat_points',points:p}));}
 function voteOption(i){selectedOption=i;ws.send(JSON.stringify({type:'vote_scenario',optionIndex:i}));render();}
 function approve(yes){ws.send(JSON.stringify({type:'approve_scenario',approve:yes}));}
@@ -283,7 +292,8 @@ function render(){
   if(!room)return;
   document.getElementById('topRoom').textContent=room.id;
   document.getElementById('topPlayers').textContent=room.players.length+'/'+room.maxPlayers+'人';
-  document.getElementById('btnGenOpts').style.display=(isDM&&room.state==='lobby')?'':'none';
+  document.getElementById('btnStartOutlines').style.display=(isDM&&room.state==='lobby')?'':'none';
+  document.getElementById('btnGenOpening').style.display=(isDM&&room.state==='outline_voting')?'':'none';
   document.getElementById('dmPointsPanel').style.display=isDM?'':'none';
 
   document.getElementById('playerList').innerHTML=room.players.map(function(p){
@@ -346,16 +356,26 @@ function render(){
       '<button class="btn btn-primary" onclick="saveStats()">✅ 确认分配</button></div>';
     updateStatDisplay();
   }
-  // 投票选剧本
-  else if(room.state==='voting'&&room.options){
-    storyEl.innerHTML='<div class="vote-box"><h3 style="margin-bottom:16px">🗳️ 投票选剧本</h3>'+
-      room.options.map(function(o,i){
-        return '<div class="vote-option '+(selectedOption===i?'selected':'')+'" onclick="'+(isDM?'':'voteOption('+i+')')+'"><h4>'+o.title+'</h4><p><b style="color:var(--gold)">'+o.theme+'</b> — '+o.outline+'</p></div>';
-      }).join('')+'</div>';
+  // 写大纲
+  else if(room.state==='outline'&&!isDM){
+    const myOutline=room.outlines&&me?room.outlines[me.id]:null;
+    storyEl.innerHTML='<div class="vote-box"><h3 style="margin-bottom:16px">✏️ 写你想玩的大纲</h3>'+
+      (myOutline?
+        '<div style="background:var(--bg3);padding:16px;border-radius:10px;margin-bottom:16px"><b style="color:var(--green)">✅ 已提交：</b><br>'+myOutline.text+'</div><p style="color:var(--dim)">等其他人提交...</p>'
+        :
+        '<textarea id="outlineInput" placeholder="你想玩什么？比如：几个人在深山老屋里，外面下着暴风雪，发现有人失踪了..." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;color:var(--text);font-size:15px;min-height:120px;resize:vertical;outline:none"></textarea><button class="btn btn-primary" onclick="submitOutline()">📝 提交大纲</button>'
+      )+'</div>';
   }
-  // 预览剧本
-  else if(room.state==='preview'&&room.scenario){
-    storyEl.innerHTML='<div class="vote-box"><h3 style="margin-bottom:16px">📖 剧本大纲</h3><div style="background:var(--bg3);padding:16px;border-radius:10px;margin-bottom:16px"><b style="font-size:16px">《'+room.scenario.title+'》</b><br><br>'+(room.scenario.background||'')+'</div><div class="vote-actions"><button class="btn btn-primary" onclick="approve(true)">✅ 接受开始</button><button class="btn" style="background:var(--red);color:#fff" onclick="approve(false)">🔄 重roll</button></div></div>';
+  // 大纲投票
+  else if(room.state==='outline_voting'&&room.outlines){
+    const ids=Object.keys(room.outlines);
+    storyEl.innerHTML='<div class="vote-box"><h3 style="margin-bottom:16px">🗳️ 投票选大纲（已投'+Object.keys(room.votes||{}).length+'人）</h3>'+
+      ids.map(function(id){
+        const o=room.outlines[id];
+        const voted=(room.votes||{})[me?me.id:0]===id;
+        const voteCount=Object.values(room.votes||{}).filter(function(v){return v===id}).length;
+        return '<div class="vote-option '+(voted?'selected':'')+'" onclick="'+(voted?'':'voteOutline(\''+id+'\')')+'"><h4>'+o.name+'的大纲 '+(voteCount?'<span style="color:var(--gold)">('+voteCount+'票)</span>':'')+'</h4><p>'+o.text+'</p></div>';
+      }).join('')+'</div>';
   }
   // 空状态
   else if(room.log.length===0){
