@@ -1,0 +1,12 @@
+{
+  "name": "dice-tale",
+  "version": "1.0.0",
+  "description": "骰语 - 多人联机 TRPG/剧本杀主持台",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}
