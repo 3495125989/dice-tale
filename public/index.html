@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>骰语 DiceTale v1.0.0</title>
+<title>骰语 DiceTale v1.1.0</title>
 <style>
 :root {
   --bg: #0f1115; --bg2: #1a1d24; --bg3: #242830;
   --border: #2e3340; --text: #e4e6eb; --dim: #8b8fa3;
-  --accent: #6c8cff; --accent2: #4a6fdc; --gold: #d4a853;
+  --accent: #6c8cff; --gold: #d4a853;
   --red: #e05555; --green: #5ec48a;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -17,98 +17,131 @@ body {
   background: var(--bg); color: var(--text); height: 100vh; overflow: hidden;
   display: flex; flex-direction: column;
 }
+
 /* ===== 首页 ===== */
-#home { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
-.logo { font-size:42px; font-weight:800; letter-spacing:8px; margin-bottom:6px; }
+#home { flex:1; overflow-y:auto; padding:20px; }
+.home-header { text-align:center; padding:30px 0 20px; }
+.logo { font-size:36px; font-weight:800; letter-spacing:6px; }
 .logo span { color: var(--accent); }
-.subtitle { color:var(--dim); font-size:13px; margin-bottom:36px; }
-.card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:24px; width:100%; max-width:400px; }
-.card h2 { font-size:16px; margin-bottom:16px; color:var(--dim); font-weight:600; }
-input, select, textarea {
-  width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:8px;
-  padding:10px 12px; color:var(--text); font-size:14px; margin-bottom:10px; outline:none;
+.subtitle { color:var(--dim); font-size:13px; margin-top:8px; }
+
+.role-cards { display:flex; gap:16px; max-width:700px; margin:0 auto; padding:20px 0; }
+.role-card {
+  flex:1; background:var(--bg2); border:2px solid var(--border); border-radius:16px;
+  padding:24px; cursor:pointer; transition:all .2s; text-align:center;
 }
-input:focus, textarea:focus { border-color:var(--accent); }
-textarea { resize:vertical; min-height:60px; }
+.role-card:hover, .role-card.active { border-color:var(--accent); background:var(--bg3); }
+.role-card .icon { font-size:40px; margin-bottom:12px; }
+.role-card h3 { font-size:18px; margin-bottom:8px; }
+.role-card p { font-size:13px; color:var(--dim); line-height:1.5; }
+
+.form-box { max-width:420px; margin:0 auto; background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:24px; }
+.form-box h2 { font-size:16px; margin-bottom:16px; }
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:13px; color:var(--dim); margin-bottom:6px; }
+.form-group input, .form-group select {
+  width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+  padding:12px; color:var(--text); font-size:15px; outline:none;
+}
+.form-group input:focus { border-color:var(--accent); }
+.form-group .hint { font-size:12px; color:var(--dim); margin-top:4px; }
+
 .btn {
-  width:100%; padding:12px; border:none; border-radius:8px; font-size:15px; font-weight:600;
-  cursor:pointer; margin-top:6px; transition:opacity .15s;
+  width:100%; padding:14px; border:none; border-radius:10px; font-size:16px; font-weight:600;
+  cursor:pointer; margin-top:8px; transition:opacity .15s;
 }
 .btn:active { opacity:.7; }
 .btn-primary { background:var(--accent); color:#fff; }
 .btn-gold { background:var(--gold); color:#1a1a1a; }
 .btn-ghost { background:transparent; border:1px solid var(--border); color:var(--dim); }
 .btn:disabled { opacity:.4; cursor:not-allowed; }
-.tabs { display:flex; gap:8px; margin-bottom:20px; }
-.tab { flex:1; padding:10px; text-align:center; border-radius:8px; cursor:pointer; background:var(--bg3); color:var(--dim); font-size:14px; }
-.tab.active { background:var(--accent); color:#fff; }
+
 /* ===== 游戏界面 ===== */
 #game { flex:1; display:none; flex-direction:column; height:100vh; }
 .topbar {
-  height:48px; background:var(--bg2); border-bottom:1px solid var(--border);
+  height:52px; background:var(--bg2); border-bottom:1px solid var(--border);
   display:flex; align-items:center; padding:0 16px; gap:12px; flex-shrink:0;
 }
-.topbar .room-id { color:var(--gold); font-weight:700; font-size:15px; }
+.topbar .room-badge {
+  background:var(--gold); color:#1a1a1a; padding:6px 14px; border-radius:8px;
+  font-weight:800; font-size:16px; letter-spacing:2px;
+}
 .topbar .players-info { color:var(--dim); font-size:13px; }
 .topbar .spacer { flex:1; }
-.topbar button {
-  background:var(--bg3); border:1px solid var(--border); color:var(--text);
-  padding:6px 14px; border-radius:6px; cursor:pointer; font-size:13px;
+.topbar .btn-start {
+  background:var(--green); color:#1a1a1a; border:none; padding:8px 16px;
+  border-radius:8px; cursor:pointer; font-weight:700; font-size:14px;
 }
+
 .main { flex:1; display:flex; overflow:hidden; }
+
 /* 左侧面板 */
 .sidebar-left {
-  width:240px; background:var(--bg2); border-right:1px solid var(--border);
+  width:230px; background:var(--bg2); border-right:1px solid var(--border);
   display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0;
 }
 .panel { border-bottom:1px solid var(--border); padding:14px; }
 .panel h3 { font-size:12px; color:var(--dim); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
 .player-chip {
-  display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; margin-bottom:4px;
-  background:var(--bg3); font-size:13px;
+  display:flex; align-items:center; gap:8px; padding:8px; border-radius:8px; margin-bottom:6px;
+  background:var(--bg3); font-size:14px;
 }
 .player-chip .dot { width:8px; height:8px; border-radius:50%; background:var(--green); }
-.player-chip .dm-badge { color:var(--gold); font-size:11px; }
-.npc-item, .clue-item { font-size:12px; color:var(--dim); padding:4px 0; border-bottom:1px solid var(--border); }
+.player-chip .dm-tag { background:var(--gold); color:#1a1a1a; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:700; }
+.npc-item, .clue-item { font-size:13px; color:var(--dim); padding:8px 0; border-bottom:1px solid var(--border); line-height:1.5; }
+.npc-item b { color:var(--text); }
+
 /* 中间剧情流 */
 .story { flex:1; overflow-y:auto; padding:20px 24px; }
-.log-entry { margin-bottom:16px; animation:fadeIn .3s; }
+.story-empty {
+  text-align:center; color:var(--dim); padding:60px 20px;
+}
+.story-empty .big-icon { font-size:48px; margin-bottom:16px; }
+.log-entry { margin-bottom:18px; animation:fadeIn .3s; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-.log-entry .label { font-size:11px; color:var(--dim); margin-bottom:3px; }
-.log-entry.dm .label { color:var(--gold); }
-.log-entry.dm_reply .label { color:var(--gold); }
-.log-entry.action .label { color:var(--accent); }
-.log-entry.dice .label { color:var(--green); }
-.log-entry.system .label { color:var(--red); }
-.log-entry .text { font-size:14px; line-height:1.7; }
-.log-entry.dice .text { font-size:20px; font-weight:700; color:var(--green); }
+.log-entry .who { font-size:12px; margin-bottom:4px; font-weight:600; }
+.log-entry.dm .who { color:var(--gold); }
+.log-entry.dm_reply .who { color:var(--gold); }
+.log-entry.action .who { color:var(--accent); }
+.log-entry.dice .who { color:var(--green); }
+.log-entry.system .who { color:var(--red); }
+.log-entry .what { font-size:15px; line-height:1.7; }
+.log-entry.dice .what { font-size:24px; font-weight:800; color:var(--green); }
+
 /* 右侧角色面板 */
 .sidebar-right {
-  width:260px; background:var(--bg2); border-left:1px solid var(--border);
+  width:250px; background:var(--bg2); border-left:1px solid var(--border);
   display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0;
 }
 .char-card { background:var(--bg3); border-radius:10px; padding:14px; margin-bottom:12px; }
-.char-card h4 { font-size:14px; margin-bottom:8px; }
-.char-card .row { display:flex; justify-content:space-between; font-size:12px; color:var(--dim); margin-bottom:4px; }
+.char-card h4 { font-size:15px; margin-bottom:8px; }
+.char-card .row { font-size:13px; color:var(--dim); margin-bottom:4px; line-height:1.5; }
+.scenario-box { font-size:13px; line-height:1.6; color:var(--dim); }
+.scenario-box b { color:var(--text); }
+.scenario-box .scene { color:var(--gold); }
+
 /* 底部输入区 */
 .input-bar {
   background:var(--bg2); border-top:1px solid var(--border);
-  padding:10px 16px; display:flex; gap:8px; align-items:center; flex-shrink:0;
+  padding:12px 16px; display:flex; gap:8px; align-items:center; flex-shrink:0;
 }
-.input-bar input { flex:1; margin:0; }
+.input-bar input { flex:1; background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-size:15px; outline:none; }
+.input-bar input:focus { border-color:var(--accent); }
 .dice-btn {
-  background:var(--gold); color:#1a1a1a; border:none; padding:10px 16px;
-  border-radius:8px; cursor:pointer; font-weight:700; font-size:14px; white-space:nowrap;
+  background:var(--gold); color:#1a1a1a; border:none; padding:12px 16px;
+  border-radius:10px; cursor:pointer; font-weight:800; font-size:15px; white-space:nowrap;
 }
 .send-btn {
-  background:var(--accent); color:#fff; border:none; padding:10px 16px;
-  border-radius:8px; cursor:pointer; font-weight:600; font-size:14px;
+  background:var(--accent); color:#fff; border:none; padding:12px 18px;
+  border-radius:10px; cursor:pointer; font-weight:600; font-size:15px;
 }
-/* DM面板 */
-.dm-panel { background:var(--bg2); border-top:1px solid var(--border); padding:10px 16px; display:none; flex-shrink:0; }
-.dm-panel.show { display:flex; gap:8px; align-items:center; }
-.dm-panel input { flex:1; margin:0; }
-/* ===== 移动端 ===== */
+.dice-select {
+  background:var(--bg3); border:1px solid var(--border); color:var(--text);
+  padding:10px; border-radius:8px; font-size:14px;
+}
+
+/* 移动端 */
+.mobile-tabs { display:none; }
 @media (max-width: 768px) {
   .sidebar-left, .sidebar-right { display:none; }
   .mobile-tabs {
@@ -116,28 +149,16 @@ textarea { resize:vertical; min-height:60px; }
     flex-shrink:0;
   }
   .mobile-tab {
-    flex:1; text-align:center; padding:10px; font-size:12px; color:var(--dim); cursor:pointer;
+    flex:1; text-align:center; padding:12px; font-size:13px; color:var(--dim); cursor:pointer;
   }
   .mobile-tab.active { color:var(--accent); }
   .sidebar-left.show, .sidebar-right.show {
-    display:flex; position:fixed; top:48px; bottom:56px; z-index:10; width:260px;
+    display:flex; position:fixed; top:52px; bottom:56px; z-index:10; width:260px;
   }
   .sidebar-left.show { left:0; }
   .sidebar-right.show { right:0; }
   .story { padding:14px; }
-  .logo { font-size:32px; letter-spacing:4px; }
-}
-.mobile-tabs { display:none; }
-.hidden { display:none !important; }
-/* 骰子选择 */
-.dice-select {
-  background:var(--bg3); border:1px solid var(--border); color:var(--text);
-  padding:8px; border-radius:6px; font-size:13px;
-}
-.toast {
-  position:fixed; top:60px; left:50%; transform:translateX(-50%);
-  background:var(--red); color:#fff; padding:10px 20px; border-radius:8px;
-  font-size:14px; z-index:999; animation:fadeIn .2s;
+  .role-cards { flex-direction:column; }
 }
 </style>
 </head>
@@ -145,88 +166,155 @@ textarea { resize:vertical; min-height:60px; }
 
 <!-- ===== 首页 ===== -->
 <div id="home">
-  <div class="logo">骰<span>语</span></div>
-  <div class="subtitle">DiceTale v1.0.0 · 多人联机跑团主持台</div>
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('create')">创建房间</div>
-    <div class="tab" onclick="switchTab('join')">加入房间</div>
+  <div class="home-header">
+    <div class="logo">骰<span>语</span></div>
+    <div class="subtitle">DiceTale v1.1.0 · 多人联机跑团主持台</div>
   </div>
-  <div id="tab-create" class="card">
-    <h2>主持人建房</h2>
-    <input id="createName" placeholder="你的称呼（DM）" value="DM">
-    <input id="apiKey" type="password" placeholder="DeepSeek API Key（可选，用于AI剧本）">
-    <div style="display:flex;gap:8px">
-      <input id="maxPlayers" type="number" placeholder="玩家人数" value="3" min="1" max="6" style="width:50%">
-      <select id="theme" style="width:50%">
-        <option value="">题材自选</option>
-        <option>悬疑推理</option><option>奇幻冒险</option><option>恐怖灵异</option>
-        <option>科幻末世</option><option>校园怪谈</option><option>武侠江湖</option>
+
+  <div class="role-cards">
+    <div class="role-card active" id="cardDM" onclick="chooseRole('dm')">
+      <div class="icon">🎭</div>
+      <h3>我是主持人</h3>
+      <p>创建房间，AI帮你写剧本，你当导演讲故事</p>
+    </div>
+    <div class="role-card" id="cardPlayer" onclick="chooseRole('player')">
+      <div class="icon">🎲</div>
+      <h3>我是玩家</h3>
+      <p>输入房间号加入朋友的局，扮演你的角色</p>
+    </div>
+  </div>
+
+  <!-- DM 建房表单 -->
+  <div id="formDM" class="form-box">
+    <h2>🏠 创建主持房间</h2>
+    <div class="form-group">
+      <label>你的称呼</label>
+      <input id="createName" placeholder="比如：老王、DM、主持人" value="主持人">
+    </div>
+    <div class="form-group">
+      <label>剧本题材</label>
+      <select id="theme">
+        <option value="">随便，AI自己想</option>
+        <option>悬疑推理（找凶手）</option>
+        <option>恐怖灵异（闹鬼）</option>
+        <option>奇幻冒险（打怪兽）</option>
+        <option>科幻末世（废土求生）</option>
+        <option>武侠江湖（江湖恩怨）</option>
       </select>
     </div>
-    <button class="btn btn-primary" onclick="createRoom()">创建房间并开始</button>
+    <div class="form-group">
+      <label>几个玩家？（不含你）</label>
+      <select id="maxPlayers">
+        <option value="1">1个朋友</option>
+        <option value="2">2个朋友</option>
+        <option value="3" selected>3个朋友</option>
+        <option value="4">4个朋友</option>
+        <option value="5">5个朋友</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>DeepSeek API Key（选填，不填就用现成剧本）</label>
+      <input id="apiKey" type="password" placeholder="sk-... 填了AI帮你写剧本">
+      <div class="hint">不填也能玩，就是没有AI自动剧本</div>
+    </div>
+    <button class="btn btn-primary" onclick="createRoom()">🚀 创建房间并开始</button>
   </div>
-  <div id="tab-join" class="card" style="display:none">
-    <h2>加入好友的房间</h2>
-    <input id="joinName" placeholder="你的角色名">
-    <input id="joinRoom" placeholder="4位房间号" maxlength="4" style="text-transform:uppercase">
-    <button class="btn btn-primary" onclick="joinRoom()">加入房间</button>
+
+  <!-- 玩家加入表单 -->
+  <div id="formPlayer" class="form-box" style="display:none">
+    <h2>🚪 加入朋友的房间</h2>
+    <div class="form-group">
+      <label>你的角色名</label>
+      <input id="joinName" placeholder="比如：侦探小李、爱丽丝">
+    </div>
+    <div class="form-group">
+      <label>房间号（主持人会告诉你）</label>
+      <input id="joinRoom" placeholder="4位字母，比如 ABCD" maxlength="4" style="text-transform:uppercase; font-size:20px; letter-spacing:4px; text-align:center">
+    </div>
+    <button class="btn btn-primary" onclick="joinRoom()">🎲 加入游戏</button>
   </div>
 </div>
 
 <!-- ===== 游戏界面 ===== -->
 <div id="game">
   <div class="topbar">
-    <span class="room-id" id="topRoom"></span>
+    <span class="room-badge" id="topRoom">----</span>
     <span class="players-info" id="topPlayers"></span>
     <div class="spacer"></div>
-    <button onclick="toggleSidebar('left')">队友</button>
-    <button onclick="toggleSidebar('right')">角色</button>
+    <button class="btn-start" id="btnStart" onclick="startGame()" style="display:none">▶ 开始游戏</button>
+    <button onclick="toggleSidebar('left')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;cursor:pointer">👥</button>
+    <button onclick="toggleSidebar('right')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;cursor:pointer">🎭</button>
   </div>
+
   <div class="main">
+    <!-- 左侧 -->
     <div class="sidebar-left" id="sidebarLeft">
-      <div class="panel"><h3>玩家</h3><div id="playerList"></div></div>
-      <div class="panel" id="npcPanel" style="display:none"><h3>NPC</h3><div id="npcList"></div></div>
-      <div class="panel" id="cluePanel" style="display:none"><h3>线索</h3><div id="clueList"></div></div>
+      <div class="panel">
+        <h3>👥 玩家</h3>
+        <div id="playerList"></div>
+      </div>
+      <div class="panel" id="npcPanel" style="display:none">
+        <h3>🧑 NPC（关键人物）</h3>
+        <div id="npcList"></div>
+      </div>
+      <div class="panel" id="cluePanel" style="display:none">
+        <h3>🔍 已发现线索</h3>
+        <div id="clueList"></div>
+      </div>
     </div>
+
+    <!-- 中间剧情流 -->
     <div class="story" id="story"></div>
+
+    <!-- 右侧 -->
     <div class="sidebar-right" id="sidebarRight">
-      <div class="panel"><h3>我的角色</h3><div id="myChar"></div></div>
+      <div class="panel">
+        <h3>🎭 我的角色</h3>
+        <div id="myChar"></div>
+      </div>
       <div class="panel" id="scenarioPanel" style="display:none">
-        <h3>剧本</h3>
-        <div id="scenarioInfo" style="font-size:12px;line-height:1.6;color:var(--dim)"></div>
+        <h3>📖 当前剧本</h3>
+        <div id="scenarioInfo" class="scenario-box"></div>
       </div>
     </div>
   </div>
-  <!-- DM 面板 -->
-  <div class="dm-panel" id="dmPanel">
-    <input id="dmInput" placeholder="DM 描述场景 / 裁定..." onkeydown="if(event.key==='Enter')dmScene()">
+
+  <!-- DM 底部 -->
+  <div class="input-bar" id="dmBar" style="display:none">
+    <input id="dmInput" placeholder="📢 描述你看到的场景...（比如：你们推开大门，发现地上有一具尸体）" onkeydown="if(event.key==='Enter')dmScene()">
     <button class="send-btn" onclick="dmScene()">发送</button>
-    <button class="btn-gold" style="padding:8px 12px;border-radius:6px;border:none;cursor:pointer;font-size:13px" onclick="aiDm()">AI裁定</button>
+    <button class="dice-btn" onclick="aiDm()">🤖 AI裁定</button>
   </div>
-  <!-- 玩家输入 -->
-  <div class="input-bar" id="playerBar">
+
+  <!-- 玩家底部 -->
+  <div class="input-bar" id="playerBar" style="display:none">
     <select class="dice-select" id="diceSides">
-      <option value="20">d20</option><option value="6">d6</option>
-      <option value="100">d100</option><option value="8">d8</option><option value="12">d12</option>
+      <option value="20">d20</option>
+      <option value="6">d6</option>
+      <option value="100">d100</option>
     </select>
-    <button class="dice-btn" onclick="rollDice()">🎲 掷骰</button>
-    <input id="actionInput" placeholder="你的行动..." onkeydown="if(event.key==='Enter')sendAction()">
+    <button class="dice-btn" onclick="rollDice()">🎲</button>
+    <input id="actionInput" placeholder="✊ 你要做什么？（比如：我检查尸体）" onkeydown="if(event.key==='Enter')sendAction()">
     <button class="send-btn" onclick="sendAction()">行动</button>
   </div>
+
   <div class="mobile-tabs">
     <div class="mobile-tab active" onclick="mobileTab('story',this)">📖 剧情</div>
-    <div class="mobile-tab" onclick="mobileTab('left',this)">👥 队友</div>
+    <div class="mobile-tab" onclick="mobileTab('left',this)">👥 玩家</div>
     <div class="mobile-tab" onclick="mobileTab('right',this)">🎭 角色</div>
   </div>
 </div>
 
 <script>
 let ws, myId, roomId, isDM, room = null;
+let role = 'dm';
 
-function switchTab(t) {
-  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active', (i===0)===(t==='create')));
-  document.getElementById('tab-create').style.display = t==='create'?'':'none';
-  document.getElementById('tab-join').style.display = t==='join'?'':'none';
+function chooseRole(r) {
+  role = r;
+  document.getElementById('cardDM').classList.toggle('active', r==='dm');
+  document.getElementById('cardPlayer').classList.toggle('active', r==='player');
+  document.getElementById('formDM').style.display = r==='dm' ? '' : 'none';
+  document.getElementById('formPlayer').style.display = r==='player' ? '' : 'none';
 }
 
 function connect() {
@@ -244,21 +332,22 @@ function connect() {
 }
 
 function createRoom() {
-  const name = document.getElementById('createName').value || 'DM';
+  const name = document.getElementById('createName').value || '主持人';
   const apiKey = document.getElementById('apiKey').value;
   const maxP = parseInt(document.getElementById('maxPlayers').value) || 3;
   const theme = document.getElementById('theme').value;
   connect();
   ws.onopen = () => {
     ws.send(JSON.stringify({ type:'create', name, apiKey, maxPlayers: maxP+1 }));
-    setTimeout(() => { showGame(); if(theme) generateScenario(theme); }, 500);
+    setTimeout(() => { showGame(); if(apiKey) generateScenario(theme); }, 500);
   };
 }
 
 function joinRoom() {
-  const name = document.getElementById('joinName').value;
-  const rid = document.getElementById('joinRoom').value.toUpperCase();
-  if(!name || !rid) { alert('请填角色名和房间号'); return; }
+  const name = document.getElementById('joinName').value.trim();
+  const rid = document.getElementById('joinRoom').value.toUpperCase().trim();
+  if(!name) { alert('先填你的角色名'); return; }
+  if(!rid || rid.length !== 4) { alert('房间号是4位字母，让主持人告诉你'); return; }
   connect();
   ws.onopen = () => {
     ws.send(JSON.stringify({ type:'join', name, roomId: rid }));
@@ -270,9 +359,8 @@ function generateScenario(theme) {
   ws.send(JSON.stringify({ type:'ai_scenario', theme }));
 }
 
-function showGame() {
-  document.getElementById('home').style.display = 'none';
-  document.getElementById('game').style.display = 'flex';
+function startGame() {
+  ws.send(JSON.stringify({ type:'start' }));
 }
 
 function dmScene() {
@@ -295,9 +383,8 @@ function rollDice() {
 }
 
 function aiDm() {
-  // 找最近一条玩家行动
   const last = [...(room?.log||[])].reverse().find(l => l.type === 'action');
-  if(!last) { alert('还没有玩家行动'); return; }
+  if(!last) { alert('还没有玩家行动可以裁定'); return; }
   ws.send(JSON.stringify({ type:'ai_dm_reply', playerName: last.player, actionText: last.text }));
 }
 
@@ -307,28 +394,34 @@ function toggleSidebar(which) {
 }
 function mobileTab(tab, el) {
   document.querySelectorAll('.mobile-tab').forEach(e=>e.classList.remove('active'));
-  el.classList.add('active');
+  el.classList.add(tab);
   document.getElementById('sidebarLeft').classList.remove('show');
   document.getElementById('sidebarRight').classList.remove('show');
   if(tab==='left') document.getElementById('sidebarLeft').classList.add('show');
   if(tab==='right') document.getElementById('sidebarRight').classList.add('show');
 }
 
+function showGame() {
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+}
+
 function render() {
   if(!room) return;
-  document.getElementById('topRoom').textContent = '🏠 ' + room.id;
+  document.getElementById('topRoom').textContent = room.id;
   document.getElementById('topPlayers').textContent = `${room.players.length}/${room.maxPlayers}人`;
+  document.getElementById('btnStart').style.display = isDM ? '' : 'none';
 
   // 玩家列表
   document.getElementById('playerList').innerHTML = room.players.map(p =>
-    `<div class="player-chip"><span class="dot"></span>${p.name}${p.isDM?'<span class="dm-badge">DM</span>':''}</div>`
+    `<div class="player-chip"><span class="dot"></span>${p.name}${p.isDM?'<span class="dm-tag">DM</span>':''}</div>`
   ).join('');
 
   // NPC
   if(room.scenario?.npcs?.length) {
     document.getElementById('npcPanel').style.display='';
     document.getElementById('npcList').innerHTML = room.scenario.npcs.map(n=>
-      `<div class="npc-item"><b>${n.name}</b><br>${n.description}<br><span style="color:var(--dim)">${n.relation||''}</span></div>`
+      `<div class="npc-item"><b>${n.name}</b><br>${n.description}</div>`
     ).join('');
   }
   // 线索
@@ -338,37 +431,50 @@ function render() {
       `<div class="clue-item">🔍 ${c}</div>`
     ).join('');
   }
-  // 剧本信息
+  // 剧本
   if(room.scenario) {
     document.getElementById('scenarioPanel').style.display='';
     document.getElementById('scenarioInfo').innerHTML = `
-      <b style="color:var(--text)">${room.scenario.title}</b><br><br>
+      <b style="color:var(--text);font-size:15px">《${room.scenario.title}》</b><br><br>
       ${room.scenario.background||''}<br><br>
-      <span style="color:var(--gold)">当前场景：</span>${room.scenario.setting||''}
+      <span class="scene">📍 当前场景：</span>${room.scenario.setting||''}
     `;
   }
   // 我的角色
   const me = room.players.find(p => p.id === myId);
   if(me) {
+    const charInfo = room.scenario?.characters?.[me.id-1];
     document.getElementById('myChar').innerHTML = `
       <div class="char-card">
-        <h4>${me.name}${me.isDM?'（DM）':''}</h4>
-        ${me.isDM ? '<div class="row"><span>你是主持人</span></div>' : `
-          <div class="row"><span>身份：${room.scenario?.characters?.[me.id-1]?.role||'冒险者'}</span></div>
-          <div class="row"><span>目标：${room.scenario?.characters?.[me.id-1]?.goal||''}</span></div>
+        <h4>${me.name}${me.isDM?'（主持人）':''}</h4>
+        ${me.isDM ? '<div class="row">你是主持人，负责讲故事和裁定</div>' : `
+          <div class="row"><b style="color:var(--text)">身份：</b>${charInfo?.role||'冒险者'}</div>
+          <div class="row"><b style="color:var(--text)">目标：</b>${charInfo?.goal||'活下去'}</div>
+          <div class="row"><b style="color:var(--text)">背景：</b>${charInfo?.description||''}</div>
         `}
       </div>`;
   }
-  // DM面板
-  document.getElementById('dmPanel').classList.toggle('show', isDM);
-  document.getElementById('playerBar').style.display = isDM ? 'none' : '';
+  // 底部栏
+  document.getElementById('dmBar').style.display = isDM ? 'flex' : 'none';
+  document.getElementById('playerBar').style.display = isDM ? 'none' : 'flex';
+
   // 剧情流
-  document.getElementById('story').innerHTML = room.log.map(l => {
-    const labelMap = { dm:'DM', dm_reply:'DM', action:l.player, dice:'🎲 '+l.player, system:'系统' };
-    const textMap = { dm:l.text, dm_reply:l.text, action:l.text, dice:`d${l.sides} = ${l.roll}`, system:l.text };
-    return `<div class="log-entry ${l.type}"><div class="label">${labelMap[l.type]||''}</div><div class="text">${textMap[l.type]||''}</div></div>`;
-  }).join('');
-  document.getElementById('story').scrollTop = document.getElementById('story').scrollHeight;
+  const storyEl = document.getElementById('story');
+  if(room.log.length === 0) {
+    storyEl.innerHTML = `
+      <div class="story-empty">
+        <div class="big-icon">🎭</div>
+        <p style="font-size:16px; margin-bottom:8px">${isDM ? '玩家到齐后，点上面"开始游戏"' : '等待主持人开始游戏...'}</p>
+        <p style="font-size:13px">${isDM ? '然后在下面描述你看到的场景开始讲故事' : '主持人会描述你们在哪里，然后你输入要做什么'}</p>
+      </div>`;
+  } else {
+    storyEl.innerHTML = room.log.map(l => {
+      const whoMap = { dm:'📢 主持人', dm_reply:'📢 主持人裁定', action:l.player+' 的行动', dice:'🎲 '+l.player+' 掷骰', system:'⚡ 系统' };
+      const whatMap = { dm:l.text, dm_reply:l.text, action:l.text, dice:`d${l.sides} = ${l.roll}`, system:l.text };
+      return `<div class="log-entry ${l.type}"><div class="who">${whoMap[l.type]||''}</div><div class="what">${whatMap[l.type]||''}</div></div>`;
+    }).join('');
+  }
+  storyEl.scrollTop = storyEl.scrollHeight;
 }
 </script>
 </body>
