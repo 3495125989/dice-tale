@@ -29,9 +29,10 @@ function createRoom() {
     apiKey: '',
     aiBaseUrl: 'https://api.deepseek.com',
     aiModel: 'deepseek-chat',
-    options: null,        // 剧本选项 [{title, theme, outline}]
-    votes: {},            // {playerId: optionIndex}
-    approveVotes: {},     // {playerId: true/false}
+    options: null,
+    votes: {},
+    approveVotes: {},
+    statPoints: 10,
   });
   return rooms.get(id);
 }
@@ -48,12 +49,13 @@ function broadcastState(room) {
     id: room.id,
     state: room.state,
     players: room.players.map(p => ({
-      id: p.id, name: p.name, isDM: p.isDM, character: p.character
+      id: p.id, name: p.name, isDM: p.isDM, character: p.character, customRole: p.customRole || '', ready: p.ready || false, stats: p.stats || null
     })),
     scenario: room.scenario,
     log: room.log,
     maxPlayers: room.maxPlayers,
     turn: room.turn,
+    statPoints: room.statPoints,
   };
   broadcast(room, { type: 'state', data: snapshot });
 }
@@ -113,7 +115,7 @@ wss.on('connection', (ws) => {
         room = rooms.get(msg.roomId);
         if (!room) { ws.send(JSON.stringify({ type: 'error', msg: '房间不存在' })); return; }
         if (room.players.length >= room.maxPlayers) { ws.send(JSON.stringify({ type: 'error', msg: '房间已满' })); return; }
-        me = { ws, id: nextPid++, name: msg.name || '玩家', isDM: false, character: null };
+        me = { ws, id: nextPid++, name: msg.name || '玩家', isDM: false, customRole: msg.role || '', character: null };
         room.players.push(me);
         ws.send(JSON.stringify({ type: 'joined', roomId: room.id, myId: me.id }));
         broadcastState(room);
@@ -122,6 +124,18 @@ wss.on('connection', (ws) => {
       // 设置角色卡
       case 'set_character': {
         if (me) me.character = msg.character;
+        broadcastState(room);
+        break;
+      }
+      // 设置属性
+      case 'set_stats': {
+        if (me && !me.isDM) { me.stats = msg.stats; }
+        broadcastState(room);
+        break;
+      }
+      // DM设置总点数
+      case 'set_stat_points': {
+        if (me && me.isDM) { room.statPoints = msg.points; }
         broadcastState(room);
         break;
       }
@@ -396,9 +410,10 @@ ${logContext}
   return data.choices[0].message.content.trim();
 }
 
-// 玩家行动后AI自动判断：要不要掷骰？直接写结果？
+// 玩家行动后AI自动判断
 async function aiProcessAction(room, player, actionText) {
   if (!room.apiKey) return;
+  const pstats = player.stats || { str:5, agi:5, int:5, wil:5, con:5 };
   const logContext = room.log.slice(-8).map(l => {
     if (l.type === 'dm') return `【主持人】${l.text}`;
     if (l.type === 'action') return `【${l.player}】${l.text}`;
@@ -409,33 +424,51 @@ async function aiProcessAction(room, player, actionText) {
 
   const prompt = `你是TRPG跑团DM。玩家【${player.name}】采取了行动：${actionText}
 
+玩家属性：力量${pstats.str} 敏捷${pstats.agi} 智力${pstats.int} 意志${pstats.wil} 体质${pstats.con}
 当前场景：${room.scenario?.setting || '未知'}
 最近剧情：
 ${logContext}
 
-请判断这个行动：
-1. 如果是简单/自动成功的事（观察、说话、走路、拿东西），直接输出DM描述（100字内），以"DM:"开头
-2. 如果需要运气判定（战斗、撬锁、追踪、说服、躲陷阱），输出"NEED_ROLL"，然后说明需要什么检定（比如"需要d20敏捷检定"），以"ROLL:"开头
+请判断这个行动并输出JSON：
+{
+  "needRoll": true/false,
+  "difficulty": 数值(需要d20大于等于多少，8-15),
+  "statCheck": "需要哪个属性检查(力量/敏捷/智力/意志/体质)或null",
+  "statNeeded": 数值(该属性需要多少才能自动成功),
+  "dmText": "DM要描述的内容(如果不需要掷骰就直接写结果，如果需要掷骰就描述玩家尝试做什么)",
+  "options": ["A选项","B选项","C选项"]
+}
 
-只输出一行，格式：
-- DM:描述内容（自动成功时）
-- ROLL:需要什么检定（需要掷骰时）`;
+规则：
+- 简单的事（看一眼、说话）needRoll=false
+- 有难度的事（撬锁、追踪、战斗）needRoll=true，difficulty看难度
+- 如果玩家属性够高（>=statNeeded），可以不用掷骰直接成功
+- options给2-3个玩家接下来可以做的事`;
 
   const res = await fetch(room.aiBaseUrl + '/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + room.apiKey },
-    body: JSON.stringify({ model: room.aiModel, messages: [{ role: 'user', content: prompt }], temperature: 0.8, max_tokens: 300 }),
+    body: JSON.stringify({ model: room.aiModel, messages: [{ role: 'user', content: prompt }], temperature: 0.8, max_tokens: 500 }),
   });
-  if (!res.ok) throw new Error('AI错误');
+  if (!res.ok) return;
   const data = await res.json();
-  const text = data.choices[0].message.content.trim();
+  let text = data.choices[0].message.content.trim();
+  const match = text.match(/\{[\s\S]*\}/);
+  if (match) text = match[0];
+  let result;
+  try { result = JSON.parse(text); } catch { return; }
 
-  if (text.startsWith('ROLL:')) {
-    // 需要掷骰：提示玩家掷骰
-    room.log.push({ type: 'system', text: `🎲 ${text.replace('ROLL:', '').trim()} — ${player.name} 请掷骰`, time: Date.now() });
+  if (result.needRoll) {
+    // 需要掷骰：DM描述+提示检定
+    room.log.push({ type: 'dm_reply', text: result.dmText || '', time: Date.now() });
+    room.log.push({ type: 'system', text: `🎲 需要 d20 检定（难度：${result.difficulty}）${result.statCheck ? ' · ' + result.statCheck : ''}`, time: Date.now() });
+    room.pendingDice = { difficulty: result.difficulty, stat: result.statCheck, player: player.name };
   } else {
-    // 自动成功：直接写DM回复
-    room.log.push({ type: 'dm_reply', text: text.replace(/^DM:/, '').trim(), time: Date.now() });
+    // 不需要掷骰直接描述
+    room.log.push({ type: 'dm_reply', text: result.dmText || '', time: Date.now() });
+  }
+  if (result.options?.length) {
+    room.log.push({ type: 'system', text: '💡 可选：' + result.options.map((o,i)=>String.fromCharCode(65+i)+'. '+o).join('  '), time: Date.now() });
   }
   broadcastState(room);
 }
@@ -443,22 +476,22 @@ ${logContext}
 // 掷骰后AI根据结果续写
 async function aiDiceResult(room, player, sides, roll) {
   if (!room.apiKey) return;
-  const lastAction = [...room.log].reverse().find(l => l.type === 'action' && l.player === player.name);
+  const pending = room.pendingDice;
+  const success = pending ? roll >= pending.difficulty : roll >= 10;
+  const pstats = player.stats || { str:5, agi:5, int:5, wil:5, con:5 };
   const logContext = room.log.slice(-8).map(l => {
     if (l.type === 'dm') return `【主持人】${l.text}`;
     if (l.type === 'action') return `【${l.player}】${l.text}`;
     if (l.type === 'dm_reply') return `【主持人】${l.text}`;
-    if (l.type === 'system') return `【系统】${l.text}`;
     return '';
   }).filter(Boolean).join('\n');
 
-  const prompt = `你是TRPG跑团DM。玩家【${player.name}】掷了d${sides}，结果是 ${roll}。
-他之前的行动是：${lastAction ? lastAction.text : '未知'}
-
+  const prompt = `你是TRPG跑团DM。玩家【${player.name}】掷了d${sides}=${roll}，难度需要${pending?.difficulty||10}，结果${success?'成功':'失败'}。
+玩家属性：力量${pstats.str} 敏捷${pstats.agi} 智力${pstats.int} 意志${pstats.wil} 体质${pstats.con}
 最近剧情：
 ${logContext}
 
-请根据掷骰结果描述行动结果（100-200字）。点数高就成功，点数低就失败或出意外。直接输出描述，不要加前缀。`;
+请根据成功/失败描述结果（100-200字，大白话不要文艺腔）。成功就写顺利完成了什么，失败就写出了什么意外。直接输出描述。`;
 
   const res = await fetch(room.aiBaseUrl + '/chat/completions', {
     method: 'POST',
@@ -468,6 +501,7 @@ ${logContext}
   if (!res.ok) return;
   const data = await res.json();
   room.log.push({ type: 'dm_reply', text: data.choices[0].message.content.trim(), time: Date.now() });
+  room.pendingDice = null;
   broadcastState(room);
 }
 
@@ -500,28 +534,30 @@ async function generateScenarioFromOption(room, option, playerCount) {
 剧本名参考：${option.title}
 大纲参考：${option.outline}
 
-请输出JSON格式（不要有多余文字）：
+重要风格要求（必须遵守）：
+- 写具体的人和事，不要写抽象概念和虚头巴脑的文学腔
+- 不要写"记忆的回响""破碎的时间""存在的虚无"这种话
+- 要写"谁、在哪、干了什么、出了什么事"
+- 像写真实案件/真实故事一样写
+
+请输出JSON格式：
 {
   "title": "剧本名称",
-  "background": "故事背景描述（200字左右）",
-  "setting": "当前场景描述（100字左右）",
+  "background": "故事背景（150字，写清楚发生了什么事，不要文艺腔）",
+  "setting": "你们现在在哪（50字，具体场景描述）",
   "characters": [{
     "name": "角色名",
-    "role": "具体身份（不要写'冒险者'，要写比如：失忆侦探/退休警察/失踪者的妹妹/神秘术士）",
-    "description": "这个角色的背景故事（100字左右，要让玩家读完就知道自己是谁、为什么在这里、有什么秘密）",
-    "goal": "具体的个人目标（不要写'活下去'，要写比如：找到失踪的妹妹/洗清杀人嫌疑/揭开自己失忆的真相）"
+    "role": "具体身份（比如：便利店店员/快递员/退休教师）",
+    "description": "你是谁、为什么在这里（80字，大白话，不要文艺腔）",
+    "goal": "你想干什么（比如：找到失踪的猫/找出谁偷了快递）"
   }],
-  "npcs": [{"name":"NPC名","description":"NPC描述","relation":"与玩家的关系"}],
-  "clues": ["线索1","线索2","线索3"],
-  "winCondition": "胜利条件",
-  "twist": "剧情转折（DM专用）"
+  "npcs": [{"name":"NPC名","description":"这个NPC是谁、长什么样","relation":"和玩家什么关系"}],
+  "clues": ["具体线索1","具体线索2","具体线索3"],
+  "winCondition": "怎么算赢",
+  "twist": "剧情反转（DM专用）"
 }
 
-重要要求：
-1. characters数组正好${playerCount}个角色
-2. 每个角色的role必须是具体身份，不能是"冒险者/幸存者"这种笼统词
-3. description要写一段完整的小故事，玩家读完要知道自己是谁
-4. goal必须和剧情相关，不能是"活下去"这种空话`;
+要求：characters数组正好${playerCount}个角色，所有内容用大白话写，不要文学腔。`;
 
   const res = await fetch(room.aiBaseUrl + '/chat/completions', {
     method: 'POST',
