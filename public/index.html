@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>骰语 DiceTale v1.0.0</title>
+<style>
+:root {
+  --bg: #0f1115; --bg2: #1a1d24; --bg3: #242830;
+  --border: #2e3340; --text: #e4e6eb; --dim: #8b8fa3;
+  --accent: #6c8cff; --accent2: #4a6fdc; --gold: #d4a853;
+  --red: #e05555; --green: #5ec48a;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--text); height: 100vh; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+/* ===== 首页 ===== */
+#home { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
+.logo { font-size:42px; font-weight:800; letter-spacing:8px; margin-bottom:6px; }
+.logo span { color: var(--accent); }
+.subtitle { color:var(--dim); font-size:13px; margin-bottom:36px; }
+.card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:24px; width:100%; max-width:400px; }
+.card h2 { font-size:16px; margin-bottom:16px; color:var(--dim); font-weight:600; }
+input, select, textarea {
+  width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+  padding:10px 12px; color:var(--text); font-size:14px; margin-bottom:10px; outline:none;
+}
+input:focus, textarea:focus { border-color:var(--accent); }
+textarea { resize:vertical; min-height:60px; }
+.btn {
+  width:100%; padding:12px; border:none; border-radius:8px; font-size:15px; font-weight:600;
+  cursor:pointer; margin-top:6px; transition:opacity .15s;
+}
+.btn:active { opacity:.7; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-gold { background:var(--gold); color:#1a1a1a; }
+.btn-ghost { background:transparent; border:1px solid var(--border); color:var(--dim); }
+.btn:disabled { opacity:.4; cursor:not-allowed; }
+.tabs { display:flex; gap:8px; margin-bottom:20px; }
+.tab { flex:1; padding:10px; text-align:center; border-radius:8px; cursor:pointer; background:var(--bg3); color:var(--dim); font-size:14px; }
+.tab.active { background:var(--accent); color:#fff; }
+/* ===== 游戏界面 ===== */
+#game { flex:1; display:none; flex-direction:column; height:100vh; }
+.topbar {
+  height:48px; background:var(--bg2); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 16px; gap:12px; flex-shrink:0;
+}
+.topbar .room-id { color:var(--gold); font-weight:700; font-size:15px; }
+.topbar .players-info { color:var(--dim); font-size:13px; }
+.topbar .spacer { flex:1; }
+.topbar button {
+  background:var(--bg3); border:1px solid var(--border); color:var(--text);
+  padding:6px 14px; border-radius:6px; cursor:pointer; font-size:13px;
+}
+.main { flex:1; display:flex; overflow:hidden; }
+/* 左侧面板 */
+.sidebar-left {
+  width:240px; background:var(--bg2); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0;
+}
+.panel { border-bottom:1px solid var(--border); padding:14px; }
+.panel h3 { font-size:12px; color:var(--dim); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+.player-chip {
+  display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; margin-bottom:4px;
+  background:var(--bg3); font-size:13px;
+}
+.player-chip .dot { width:8px; height:8px; border-radius:50%; background:var(--green); }
+.player-chip .dm-badge { color:var(--gold); font-size:11px; }
+.npc-item, .clue-item { font-size:12px; color:var(--dim); padding:4px 0; border-bottom:1px solid var(--border); }
+/* 中间剧情流 */
+.story { flex:1; overflow-y:auto; padding:20px 24px; }
+.log-entry { margin-bottom:16px; animation:fadeIn .3s; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.log-entry .label { font-size:11px; color:var(--dim); margin-bottom:3px; }
+.log-entry.dm .label { color:var(--gold); }
+.log-entry.dm_reply .label { color:var(--gold); }
+.log-entry.action .label { color:var(--accent); }
+.log-entry.dice .label { color:var(--green); }
+.log-entry.system .label { color:var(--red); }
+.log-entry .text { font-size:14px; line-height:1.7; }
+.log-entry.dice .text { font-size:20px; font-weight:700; color:var(--green); }
+/* 右侧角色面板 */
+.sidebar-right {
+  width:260px; background:var(--bg2); border-left:1px solid var(--border);
+  display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0;
+}
+.char-card { background:var(--bg3); border-radius:10px; padding:14px; margin-bottom:12px; }
+.char-card h4 { font-size:14px; margin-bottom:8px; }
+.char-card .row { display:flex; justify-content:space-between; font-size:12px; color:var(--dim); margin-bottom:4px; }
+/* 底部输入区 */
+.input-bar {
+  background:var(--bg2); border-top:1px solid var(--border);
+  padding:10px 16px; display:flex; gap:8px; align-items:center; flex-shrink:0;
+}
+.input-bar input { flex:1; margin:0; }
+.dice-btn {
+  background:var(--gold); color:#1a1a1a; border:none; padding:10px 16px;
+  border-radius:8px; cursor:pointer; font-weight:700; font-size:14px; white-space:nowrap;
+}
+.send-btn {
+  background:var(--accent); color:#fff; border:none; padding:10px 16px;
+  border-radius:8px; cursor:pointer; font-weight:600; font-size:14px;
+}
+/* DM面板 */
+.dm-panel { background:var(--bg2); border-top:1px solid var(--border); padding:10px 16px; display:none; flex-shrink:0; }
+.dm-panel.show { display:flex; gap:8px; align-items:center; }
+.dm-panel input { flex:1; margin:0; }
+/* ===== 移动端 ===== */
+@media (max-width: 768px) {
+  .sidebar-left, .sidebar-right { display:none; }
+  .mobile-tabs {
+    display:flex; background:var(--bg2); border-top:1px solid var(--border);
+    flex-shrink:0;
+  }
+  .mobile-tab {
+    flex:1; text-align:center; padding:10px; font-size:12px; color:var(--dim); cursor:pointer;
+  }
+  .mobile-tab.active { color:var(--accent); }
+  .sidebar-left.show, .sidebar-right.show {
+    display:flex; position:fixed; top:48px; bottom:56px; z-index:10; width:260px;
+  }
+  .sidebar-left.show { left:0; }
+  .sidebar-right.show { right:0; }
+  .story { padding:14px; }
+  .logo { font-size:32px; letter-spacing:4px; }
+}
+.mobile-tabs { display:none; }
+.hidden { display:none !important; }
+/* 骰子选择 */
+.dice-select {
+  background:var(--bg3); border:1px solid var(--border); color:var(--text);
+  padding:8px; border-radius:6px; font-size:13px;
+}
+.toast {
+  position:fixed; top:60px; left:50%; transform:translateX(-50%);
+  background:var(--red); color:#fff; padding:10px 20px; border-radius:8px;
+  font-size:14px; z-index:999; animation:fadeIn .2s;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 首页 ===== -->
+<div id="home">
+  <div class="logo">骰<span>语</span></div>
+  <div class="subtitle">DiceTale v1.0.0 · 多人联机跑团主持台</div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('create')">创建房间</div>
+    <div class="tab" onclick="switchTab('join')">加入房间</div>
+  </div>
+  <div id="tab-create" class="card">
+    <h2>主持人建房</h2>
+    <input id="createName" placeholder="你的称呼（DM）" value="DM">
+    <input id="apiKey" type="password" placeholder="DeepSeek API Key（可选，用于AI剧本）">
+    <div style="display:flex;gap:8px">
+      <input id="maxPlayers" type="number" placeholder="玩家人数" value="3" min="1" max="6" style="width:50%">
+      <select id="theme" style="width:50%">
+        <option value="">题材自选</option>
+        <option>悬疑推理</option><option>奇幻冒险</option><option>恐怖灵异</option>
+        <option>科幻末世</option><option>校园怪谈</option><option>武侠江湖</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="createRoom()">创建房间并开始</button>
+  </div>
+  <div id="tab-join" class="card" style="display:none">
+    <h2>加入好友的房间</h2>
+    <input id="joinName" placeholder="你的角色名">
+    <input id="joinRoom" placeholder="4位房间号" maxlength="4" style="text-transform:uppercase">
+    <button class="btn btn-primary" onclick="joinRoom()">加入房间</button>
+  </div>
+</div>
+
+<!-- ===== 游戏界面 ===== -->
+<div id="game">
+  <div class="topbar">
+    <span class="room-id" id="topRoom"></span>
+    <span class="players-info" id="topPlayers"></span>
+    <div class="spacer"></div>
+    <button onclick="toggleSidebar('left')">队友</button>
+    <button onclick="toggleSidebar('right')">角色</button>
+  </div>
+  <div class="main">
+    <div class="sidebar-left" id="sidebarLeft">
+      <div class="panel"><h3>玩家</h3><div id="playerList"></div></div>
+      <div class="panel" id="npcPanel" style="display:none"><h3>NPC</h3><div id="npcList"></div></div>
+      <div class="panel" id="cluePanel" style="display:none"><h3>线索</h3><div id="clueList"></div></div>
+    </div>
+    <div class="story" id="story"></div>
+    <div class="sidebar-right" id="sidebarRight">
+      <div class="panel"><h3>我的角色</h3><div id="myChar"></div></div>
+      <div class="panel" id="scenarioPanel" style="display:none">
+        <h3>剧本</h3>
+        <div id="scenarioInfo" style="font-size:12px;line-height:1.6;color:var(--dim)"></div>
+      </div>
+    </div>
+  </div>
+  <!-- DM 面板 -->
+  <div class="dm-panel" id="dmPanel">
+    <input id="dmInput" placeholder="DM 描述场景 / 裁定..." onkeydown="if(event.key==='Enter')dmScene()">
+    <button class="send-btn" onclick="dmScene()">发送</button>
+    <button class="btn-gold" style="padding:8px 12px;border-radius:6px;border:none;cursor:pointer;font-size:13px" onclick="aiDm()">AI裁定</button>
+  </div>
+  <!-- 玩家输入 -->
+  <div class="input-bar" id="playerBar">
+    <select class="dice-select" id="diceSides">
+      <option value="20">d20</option><option value="6">d6</option>
+      <option value="100">d100</option><option value="8">d8</option><option value="12">d12</option>
+    </select>
+    <button class="dice-btn" onclick="rollDice()">🎲 掷骰</button>
+    <input id="actionInput" placeholder="你的行动..." onkeydown="if(event.key==='Enter')sendAction()">
+    <button class="send-btn" onclick="sendAction()">行动</button>
+  </div>
+  <div class="mobile-tabs">
+    <div class="mobile-tab active" onclick="mobileTab('story',this)">📖 剧情</div>
+    <div class="mobile-tab" onclick="mobileTab('left',this)">👥 队友</div>
+    <div class="mobile-tab" onclick="mobileTab('right',this)">🎭 角色</div>
+  </div>
+</div>
+
+<script>
+let ws, myId, roomId, isDM, room = null;
+
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active', (i===0)===(t==='create')));
+  document.getElementById('tab-create').style.display = t==='create'?'':'none';
+  document.getElementById('tab-join').style.display = t==='join'?'':'none';
+}
+
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(proto + '//' + location.host + '/ws');
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    switch(msg.type) {
+      case 'created': roomId = msg.roomId; myId = msg.myId; isDM = true; break;
+      case 'joined': roomId = msg.roomId; myId = msg.myId; isDM = false; break;
+      case 'state': room = msg.data; render(); break;
+      case 'error': alert(msg.msg); break;
+    }
+  };
+}
+
+function createRoom() {
+  const name = document.getElementById('createName').value || 'DM';
+  const apiKey = document.getElementById('apiKey').value;
+  const maxP = parseInt(document.getElementById('maxPlayers').value) || 3;
+  const theme = document.getElementById('theme').value;
+  connect();
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type:'create', name, apiKey, maxPlayers: maxP+1 }));
+    setTimeout(() => { showGame(); if(theme) generateScenario(theme); }, 500);
+  };
+}
+
+function joinRoom() {
+  const name = document.getElementById('joinName').value;
+  const rid = document.getElementById('joinRoom').value.toUpperCase();
+  if(!name || !rid) { alert('请填角色名和房间号'); return; }
+  connect();
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type:'join', name, roomId: rid }));
+    setTimeout(() => showGame(), 500);
+  };
+}
+
+function generateScenario(theme) {
+  ws.send(JSON.stringify({ type:'ai_scenario', theme }));
+}
+
+function showGame() {
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+}
+
+function dmScene() {
+  const v = document.getElementById('dmInput').value.trim();
+  if(!v) return;
+  ws.send(JSON.stringify({ type:'dm_scene', text:v }));
+  document.getElementById('dmInput').value = '';
+}
+
+function sendAction() {
+  const v = document.getElementById('actionInput').value.trim();
+  if(!v) return;
+  ws.send(JSON.stringify({ type:'player_action', text:v }));
+  document.getElementById('actionInput').value = '';
+}
+
+function rollDice() {
+  const sides = parseInt(document.getElementById('diceSides').value);
+  ws.send(JSON.stringify({ type:'dice', sides }));
+}
+
+function aiDm() {
+  // 找最近一条玩家行动
+  const last = [...(room?.log||[])].reverse().find(l => l.type === 'action');
+  if(!last) { alert('还没有玩家行动'); return; }
+  ws.send(JSON.stringify({ type:'ai_dm_reply', playerName: last.player, actionText: last.text }));
+}
+
+function toggleSidebar(which) {
+  const el = document.getElementById('sidebar'+which.charAt(0).toUpperCase()+which.slice(1));
+  el.classList.toggle('show');
+}
+function mobileTab(tab, el) {
+  document.querySelectorAll('.mobile-tab').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('sidebarLeft').classList.remove('show');
+  document.getElementById('sidebarRight').classList.remove('show');
+  if(tab==='left') document.getElementById('sidebarLeft').classList.add('show');
+  if(tab==='right') document.getElementById('sidebarRight').classList.add('show');
+}
+
+function render() {
+  if(!room) return;
+  document.getElementById('topRoom').textContent = '🏠 ' + room.id;
+  document.getElementById('topPlayers').textContent = `${room.players.length}/${room.maxPlayers}人`;
+
+  // 玩家列表
+  document.getElementById('playerList').innerHTML = room.players.map(p =>
+    `<div class="player-chip"><span class="dot"></span>${p.name}${p.isDM?'<span class="dm-badge">DM</span>':''}</div>`
+  ).join('');
+
+  // NPC
+  if(room.scenario?.npcs?.length) {
+    document.getElementById('npcPanel').style.display='';
+    document.getElementById('npcList').innerHTML = room.scenario.npcs.map(n=>
+      `<div class="npc-item"><b>${n.name}</b><br>${n.description}<br><span style="color:var(--dim)">${n.relation||''}</span></div>`
+    ).join('');
+  }
+  // 线索
+  if(room.scenario?.clues?.length) {
+    document.getElementById('cluePanel').style.display='';
+    document.getElementById('clueList').innerHTML = room.scenario.clues.map(c=>
+      `<div class="clue-item">🔍 ${c}</div>`
+    ).join('');
+  }
+  // 剧本信息
+  if(room.scenario) {
+    document.getElementById('scenarioPanel').style.display='';
+    document.getElementById('scenarioInfo').innerHTML = `
+      <b style="color:var(--text)">${room.scenario.title}</b><br><br>
+      ${room.scenario.background||''}<br><br>
+      <span style="color:var(--gold)">当前场景：</span>${room.scenario.setting||''}
+    `;
+  }
+  // 我的角色
+  const me = room.players.find(p => p.id === myId);
+  if(me) {
+    document.getElementById('myChar').innerHTML = `
+      <div class="char-card">
+        <h4>${me.name}${me.isDM?'（DM）':''}</h4>
+        ${me.isDM ? '<div class="row"><span>你是主持人</span></div>' : `
+          <div class="row"><span>身份：${room.scenario?.characters?.[me.id-1]?.role||'冒险者'}</span></div>
+          <div class="row"><span>目标：${room.scenario?.characters?.[me.id-1]?.goal||''}</span></div>
+        `}
+      </div>`;
+  }
+  // DM面板
+  document.getElementById('dmPanel').classList.toggle('show', isDM);
+  document.getElementById('playerBar').style.display = isDM ? 'none' : '';
+  // 剧情流
+  document.getElementById('story').innerHTML = room.log.map(l => {
+    const labelMap = { dm:'DM', dm_reply:'DM', action:l.player, dice:'🎲 '+l.player, system:'系统' };
+    const textMap = { dm:l.text, dm_reply:l.text, action:l.text, dice:`d${l.sides} = ${l.roll}`, system:l.text };
+    return `<div class="log-entry ${l.type}"><div class="label">${labelMap[l.type]||''}</div><div class="text">${textMap[l.type]||''}</div></div>`;
+  }).join('');
+  document.getElementById('story').scrollTop = document.getElementById('story').scrollHeight;
+}
+</script>
+</body>
+</html>
