@@ -158,6 +158,33 @@ wss.on('connection', (ws) => {
         if (me && me.isDM && room.pendingDice) { room.pendingDice.difficulty = msg.difficulty; broadcastState(room); }
         break;
       }
+      case 'regenerate_result': {
+        if (me && me.isDM) {
+          // 重新生成最后一条掷骰结果的描述
+          const lastDice = [...room.log].reverse().find(l => l.type === 'dice');
+          if (!lastDice) break;
+          const player = room.players.find(p => p.name === lastDice.player);
+          if (!player) break;
+          const ps = player.stats || {str:5,agi:5,int:5,wil:5,con:5};
+          const recent = room.log.slice(-15).map(l => {
+            if (l.type==='dm'||l.type==='dm_reply') return '【DM】'+l.text;
+            if (l.type==='action') return '【'+l.player+'】'+l.text;
+            if (l.type==='dice') return '【掷骰】'+l.player+'='+l.roll;
+            return '';
+          }).filter(Boolean).join('\n');
+          const prompt = `你是跑团DM。玩家【${player.name}】掷了d${lastDice.sides}=${lastDice.roll}。
+属性：力量${ps.str} 敏捷${ps.agi} 智力${ps.int} 理智${ps.wil} 体质${ps.con}
+最近剧情（注意之前谁拿了什么道具）：${recent}
+大白话重写结果（80字内），告诉玩家发生了什么。`;
+          fetch(room.aiBaseUrl+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+room.apiKey},body:JSON.stringify({model:room.aiModel,messages:[{role:'user',content:prompt}],temperature:0.9,max_tokens:300})})
+          .then(r=>r.json()).then(d=>{
+            const result=d.choices[0].message.content.trim();
+            const dm=room.players.find(p=>p.isDM);
+            if(dm&&dm.ws)dm.ws.send(JSON.stringify({type:'dm_review',text:result,player:player.name}));
+          }).catch(()=>{});
+        }
+        break;
+      }
       case 'update_notes': { room.publicNotes = msg.text||''; broadcastState(room); break; }
     }
   });
@@ -209,17 +236,37 @@ async function afterDice(room, player, sides, roll) {
     if (l.type==='dice') return '【掷骰】'+l.player+'='+l.roll;
     return '';
   }).filter(Boolean).join('\n');
-  const ps = player.stats || {str:5,agi:5,int:5,wil:5,con:5};
+  const ps = player.stats || {str:5,agi:5,int:5,wil:5,con:5,hp:10};
   const prompt = `你是跑团DM。玩家【${player.name}】掷了d${sides}=${roll}，难度${pending.difficulty}，结果${success?'成功':'失败'}。
-属性：力量${ps.str} 敏捷${ps.agi} 智力${ps.int} 理智${ps.wil} 体质${ps.con}
+当前属性：力量${ps.str} 敏捷${ps.agi} 智力${ps.int} 理智${ps.wil} 体质${ps.con} 体力${ps.hp}
 最近剧情：${recent}
-大白话写结果（80字内），告诉玩家发生了什么。`;
+大白话写结果（80字内），告诉玩家发生了什么。
+同时根据这次行动随机调整属性（平衡，不要一直加）：
+返回JSON格式：{"text":"结果描述","str":0,"agi":0,"int":0,"wil":0,"con":0,"hp":0}
+数值范围-2到+2，根据行动内容合理调整。`;
   try {
-    const res = await fetch(room.aiBaseUrl+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+room.apiKey},body:JSON.stringify({model:room.aiModel,messages:[{role:'user',content:prompt}],temperature:0.8,max_tokens:300})});
+    const res = await fetch(room.aiBaseUrl+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+room.apiKey},body:JSON.stringify({model:room.aiModel,messages:[{role:'user',content:prompt}],temperature:0.8,max_tokens:400})});
     const data = await res.json();
-    const result = data.choices[0].message.content.trim();
+    const raw = data.choices[0].message.content.trim();
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (m) {
+      try {
+        const j = JSON.parse(m[0]);
+        ['str','agi','int','wil','con','hp'].forEach(k => {
+          if (j[k] && player.stats) player.stats[k] = Math.max(1, Math.min(15, player.stats[k] + j[k]));
+        });
+        const labels={str:'力量',agi:'敏捷',int:'智力',wil:'理智',con:'体质',hp:'体力'};
+        const changes = Object.keys(j).filter(k=>k!=='text'&&j[k]).map(k=>labels[k]+(j[k]>0?'+':'')+j[k]);
+        const result = j.text + (changes.length?'\n📊 属性变化：'+changes.join('，'):'');
+        const dm = room.players.find(p=>p.isDM);
+        if (dm && dm.ws) dm.ws.send(JSON.stringify({type:'dm_review',text:result,player:player.name}));
+        room.pendingDice = null;
+        broadcastState(room);
+        return;
+      } catch {}
+    }
     const dm = room.players.find(p=>p.isDM);
-    if (dm && dm.ws) dm.ws.send(JSON.stringify({type:'dm_review',text:result,player:player.name}));
+    if (dm && dm.ws) dm.ws.send(JSON.stringify({type:'dm_review',text:raw,player:player.name}));
   } catch {}
   room.pendingDice = null;
   broadcastState(room);
