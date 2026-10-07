@@ -1,14 +1,30 @@
-const express = require('express');
 const http = require('http');
 const { WebSocketServer } = require('ws');
+const fs = require('fs');
 const path = require('path');
 
-const app = express();
-const server = http.createServer(app);
-const wss = new WebSocketServer({ server, path: '/ws' });
 const PORT = process.env.PORT || 10000;
+const publicDir = path.join(__dirname, 'public');
 
-app.use(express.static(path.join(__dirname, 'public')));
+const MIME = {
+  '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
+  '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
+};
+
+const server = http.createServer((req, res) => {
+  let urlPath = req.url.split('?')[0];
+  if (urlPath === '/') urlPath = '/index.html';
+  const filePath = path.join(publicDir, urlPath);
+  if (!filePath.startsWith(publicDir)) { res.writeHead(403); res.end(); return; }
+  fs.readFile(filePath, (err, data) => {
+    if (err) { res.writeHead(404); res.end('Not found'); return; }
+    const ext = path.extname(filePath).toLowerCase();
+    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+    res.end(data);
+  });
+});
+
+const wss = new WebSocketServer({ server, path: '/ws' });
 
 const rooms = new Map();
 let nextPlayerId = 1;
