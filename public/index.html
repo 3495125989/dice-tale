@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>骰语 DiceTale v1.1.0</title>
+<title>骰语 DiceTale v1.2.0</title>
 <style>
 :root {
   --bg: #0f1115; --bg2: #1a1d24; --bg3: #242830;
@@ -17,14 +17,11 @@ body {
   background: var(--bg); color: var(--text); height: 100vh; overflow: hidden;
   display: flex; flex-direction: column;
 }
-
-/* ===== 首页 ===== */
 #home { flex:1; overflow-y:auto; padding:20px; }
 .home-header { text-align:center; padding:30px 0 20px; }
 .logo { font-size:36px; font-weight:800; letter-spacing:6px; }
 .logo span { color: var(--accent); }
 .subtitle { color:var(--dim); font-size:13px; margin-top:8px; }
-
 .role-cards { display:flex; gap:16px; max-width:700px; margin:0 auto; padding:20px 0; }
 .role-card {
   flex:1; background:var(--bg2); border:2px solid var(--border); border-radius:16px;
@@ -34,7 +31,6 @@ body {
 .role-card .icon { font-size:40px; margin-bottom:12px; }
 .role-card h3 { font-size:18px; margin-bottom:8px; }
 .role-card p { font-size:13px; color:var(--dim); line-height:1.5; }
-
 .form-box { max-width:420px; margin:0 auto; background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:24px; }
 .form-box h2 { font-size:16px; margin-bottom:16px; }
 .form-group { margin-bottom:14px; }
@@ -43,72 +39,52 @@ body {
   width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:8px;
   padding:12px; color:var(--text); font-size:15px; outline:none;
 }
-.form-group input:focus { border-color:var(--accent); }
 .form-group .hint { font-size:12px; color:var(--dim); margin-top:4px; }
-
 .btn {
   width:100%; padding:14px; border:none; border-radius:10px; font-size:16px; font-weight:600;
-  cursor:pointer; margin-top:8px; transition:opacity .15s;
+  cursor:pointer; margin-top:8px;
 }
-.btn:active { opacity:.7; }
 .btn-primary { background:var(--accent); color:#fff; }
-.btn-gold { background:var(--gold); color:#1a1a1a; }
-.btn-ghost { background:transparent; border:1px solid var(--border); color:var(--dim); }
 .btn:disabled { opacity:.4; cursor:not-allowed; }
-
-/* ===== 游戏界面 ===== */
 #game { flex:1; display:none; flex-direction:column; height:100vh; }
 .topbar {
   height:52px; background:var(--bg2); border-bottom:1px solid var(--border);
   display:flex; align-items:center; padding:0 16px; gap:12px; flex-shrink:0;
 }
-.topbar .room-badge {
+.room-badge {
   background:var(--gold); color:#1a1a1a; padding:6px 14px; border-radius:8px;
   font-weight:800; font-size:16px; letter-spacing:2px;
 }
-.topbar .players-info { color:var(--dim); font-size:13px; }
-.topbar .spacer { flex:1; }
-.topbar .btn-start {
-  background:var(--green); color:#1a1a1a; border:none; padding:8px 16px;
-  border-radius:8px; cursor:pointer; font-weight:700; font-size:14px;
-}
-
+.players-info { color:var(--dim); font-size:13px; }
+.spacer { flex:1; }
 .main { flex:1; display:flex; overflow:hidden; }
-
-/* 左侧面板 */
 .sidebar-left {
   width:230px; background:var(--bg2); border-right:1px solid var(--border);
   display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0;
 }
 .panel { border-bottom:1px solid var(--border); padding:14px; }
-.panel h3 { font-size:12px; color:var(--dim); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+.panel h3 { font-size:12px; color:var(--dim); margin-bottom:10px; letter-spacing:1px; }
 .player-chip {
   display:flex; align-items:center; gap:8px; padding:8px; border-radius:8px; margin-bottom:6px;
   background:var(--bg3); font-size:14px;
 }
-.player-chip .dot { width:8px; height:8px; border-radius:50%; background:var(--green); }
-.player-chip .dm-tag { background:var(--gold); color:#1a1a1a; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:700; }
+.player-chip .dot { width:8px; height:8px; border-radius:50%; background:var(--dim); }
+.player-chip.ready .dot { background:var(--green); }
+.dm-tag { background:var(--gold); color:#1a1a1a; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:700; }
 .npc-item, .clue-item { font-size:13px; color:var(--dim); padding:8px 0; border-bottom:1px solid var(--border); line-height:1.5; }
 .npc-item b { color:var(--text); }
-
-/* 中间剧情流 */
 .story { flex:1; overflow-y:auto; padding:20px 24px; }
-.story-empty {
-  text-align:center; color:var(--dim); padding:60px 20px;
-}
+.story-empty { text-align:center; color:var(--dim); padding:60px 20px; }
 .story-empty .big-icon { font-size:48px; margin-bottom:16px; }
 .log-entry { margin-bottom:18px; animation:fadeIn .3s; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 .log-entry .who { font-size:12px; margin-bottom:4px; font-weight:600; }
-.log-entry.dm .who { color:var(--gold); }
-.log-entry.dm_reply .who { color:var(--gold); }
+.log-entry.dm .who, .log-entry.dm_reply .who { color:var(--gold); }
 .log-entry.action .who { color:var(--accent); }
 .log-entry.dice .who { color:var(--green); }
 .log-entry.system .who { color:var(--red); }
 .log-entry .what { font-size:15px; line-height:1.7; }
 .log-entry.dice .what { font-size:24px; font-weight:800; color:var(--green); }
-
-/* 右侧角色面板 */
 .sidebar-right {
   width:250px; background:var(--bg2); border-left:1px solid var(--border);
   display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0;
@@ -118,201 +94,209 @@ body {
 .char-card .row { font-size:13px; color:var(--dim); margin-bottom:4px; line-height:1.5; }
 .scenario-box { font-size:13px; line-height:1.6; color:var(--dim); }
 .scenario-box b { color:var(--text); }
-.scenario-box .scene { color:var(--gold); }
-
-/* 底部输入区 */
 .input-bar {
   background:var(--bg2); border-top:1px solid var(--border);
   padding:12px 16px; display:flex; gap:8px; align-items:center; flex-shrink:0;
 }
 .input-bar input { flex:1; background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-size:15px; outline:none; }
-.input-bar input:focus { border-color:var(--accent); }
-.dice-btn {
-  background:var(--gold); color:#1a1a1a; border:none; padding:12px 16px;
-  border-radius:10px; cursor:pointer; font-weight:800; font-size:15px; white-space:nowrap;
-}
-.send-btn {
-  background:var(--accent); color:#fff; border:none; padding:12px 18px;
-  border-radius:10px; cursor:pointer; font-weight:600; font-size:15px;
-}
-.dice-select {
-  background:var(--bg3); border:1px solid var(--border); color:var(--text);
-  padding:10px; border-radius:8px; font-size:14px;
-}
+.dice-btn { background:var(--gold); color:#1a1a1a; border:none; padding:12px 16px; border-radius:10px; cursor:pointer; font-weight:800; font-size:15px; white-space:nowrap; }
+.send-btn { background:var(--accent); color:#fff; border:none; padding:12px 18px; border-radius:10px; cursor:pointer; font-weight:600; font-size:15px; }
+.dice-select { background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:10px; border-radius:8px; font-size:14px; }
 
-/* 移动端 */
+/* 投票区 */
+.vote-box { max-width:600px; margin:0 auto; padding:20px; }
+.vote-option {
+  background:var(--bg3); border:2px solid var(--border); border-radius:12px;
+  padding:16px; margin-bottom:12px; cursor:pointer; transition:all .15s;
+}
+.vote-option:hover { border-color:var(--accent); }
+.vote-option.selected { border-color:var(--green); background:rgba(94,196,138,.1); }
+.vote-option h4 { font-size:16px; margin-bottom:6px; }
+.vote-option p { font-size:13px; color:var(--dim); line-height:1.5; }
+.vote-actions { display:flex; gap:12px; margin-top:16px; }
+.vote-actions .btn { margin-top:0; }
+.btn-approve { background:var(--green); color:#1a1a1a; }
+.btn-reject { background:var(--red); color:#fff; }
+
+.ready-btn {
+  background:var(--green); color:#1a1a1a; border:none; padding:10px 20px;
+  border-radius:10px; cursor:pointer; font-weight:700; font-size:14px;
+}
+.ready-btn.ready { background:var(--dim); color:#fff; }
+.stat-box { max-width:500px; margin:0 auto; padding:20px; }
+.stat-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.stat-row label { width:80px; font-size:14px; }
+.stat-row input[type=range] { flex:1; }
+.stat-row .val { width:30px; text-align:center; font-weight:700; color:var(--gold); }
+.stat-remaining { text-align:center; font-size:16px; margin:12px 0; }
+.stat-remaining b { color:var(--gold); font-size:20px; }
+.stat-display { background:var(--bg3); padding:10px; border-radius:8px; margin-bottom:6px; font-size:13px; }
+.stat-display span { color:var(--gold); font-weight:700; }
+.dm-action-btn {
+  background:var(--gold); color:#1a1a1a; border:none; padding:10px 20px;
+  border-radius:10px; cursor:pointer; font-weight:700; font-size:14px;
+}
 .mobile-tabs { display:none; }
 @media (max-width: 768px) {
   .sidebar-left, .sidebar-right { display:none; }
-  .mobile-tabs {
-    display:flex; background:var(--bg2); border-top:1px solid var(--border);
-    flex-shrink:0;
-  }
-  .mobile-tab {
-    flex:1; text-align:center; padding:12px; font-size:13px; color:var(--dim); cursor:pointer;
-  }
+  .mobile-tabs { display:flex; background:var(--bg2); border-top:1px solid var(--border); flex-shrink:0; }
+  .mobile-tab { flex:1; text-align:center; padding:12px; font-size:13px; color:var(--dim); cursor:pointer; }
   .mobile-tab.active { color:var(--accent); }
-  .sidebar-left.show, .sidebar-right.show {
-    display:flex; position:fixed; top:52px; bottom:56px; z-index:10; width:260px;
-  }
-  .sidebar-left.show { left:0; }
-  .sidebar-right.show { right:0; }
-  .story { padding:14px; }
   .role-cards { flex-direction:column; }
+  .story { padding:14px; }
 }
 </style>
 </head>
 <body>
 
-<!-- ===== 首页 ===== -->
 <div id="home">
   <div class="home-header">
     <div class="logo">骰<span>语</span></div>
-    <div class="subtitle">DiceTale v1.1.0 · 多人联机跑团主持台</div>
+    <div class="subtitle">DiceTale v1.2.0 · 多人联机跑团主持台</div>
   </div>
-
   <div class="role-cards">
     <div class="role-card active" id="cardDM" onclick="chooseRole('dm')">
-      <div class="icon">🎭</div>
-      <h3>我是主持人</h3>
-      <p>创建房间，AI帮你写剧本，你当导演讲故事</p>
+      <div class="icon">🎭</div><h3>我是主持人</h3><p>创建房间，AI帮你写剧本</p>
     </div>
     <div class="role-card" id="cardPlayer" onclick="chooseRole('player')">
-      <div class="icon">🎲</div>
-      <h3>我是玩家</h3>
-      <p>输入房间号加入朋友的局，扮演你的角色</p>
+      <div class="icon">🎲</div><h3>我是玩家</h3><p>输入房间号加入朋友的局</p>
     </div>
   </div>
-
-  <!-- DM 建房表单 -->
   <div id="formDM" class="form-box">
     <h2>🏠 创建主持房间</h2>
-    <div class="form-group">
-      <label>你的称呼</label>
-      <input id="createName" placeholder="比如：老王、DM、主持人" value="主持人">
-    </div>
-    <div class="form-group">
-      <label>剧本题材</label>
-      <select id="theme">
-        <option value="">随便，AI自己想</option>
-        <option>悬疑推理（找凶手）</option>
-        <option>恐怖灵异（闹鬼）</option>
-        <option>奇幻冒险（打怪兽）</option>
-        <option>科幻末世（废土求生）</option>
-        <option>武侠江湖（江湖恩怨）</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>几个玩家？（不含你）</label>
+    <div class="form-group"><label>你的称呼</label><input id="createName" value="主持人"></div>
+    <div class="form-group"><label>几个玩家？</label>
       <select id="maxPlayers">
-        <option value="1">1个朋友</option>
-        <option value="2">2个朋友</option>
-        <option value="3" selected>3个朋友</option>
-        <option value="4">4个朋友</option>
-        <option value="5">5个朋友</option>
+        <option value="1">1个朋友</option><option value="2">2个朋友</option>
+        <option value="3" selected>3个朋友</option><option value="4">4个朋友</option>
       </select>
     </div>
-    <div class="form-group">
-      <label>DeepSeek API Key（选填，不填就用现成剧本）</label>
-      <input id="apiKey" type="password" placeholder="sk-... 填了AI帮你写剧本">
-      <div class="hint">不填也能玩，就是没有AI自动剧本</div>
+    <div class="form-group"><label>DeepSeek API Key（选填）</label>
+      <input id="apiKey" type="password" placeholder="sk-...">
+      <div class="hint">填了AI帮你写剧本和自动裁定</div>
     </div>
-    <button class="btn btn-primary" onclick="createRoom()">🚀 创建房间并开始</button>
+    <button class="btn btn-primary" onclick="createRoom()">🚀 创建房间</button>
   </div>
-
-  <!-- 玩家加入表单 -->
   <div id="formPlayer" class="form-box" style="display:none">
-    <h2>🚪 加入朋友的房间</h2>
-    <div class="form-group">
-      <label>你的角色名</label>
-      <input id="joinName" placeholder="比如：侦探小李、爱丽丝">
-    </div>
-    <div class="form-group">
-      <label>房间号（主持人会告诉你）</label>
-      <input id="joinRoom" placeholder="4位字母，比如 ABCD" maxlength="4" style="text-transform:uppercase; font-size:20px; letter-spacing:4px; text-align:center">
+    <h2>🚪 加入房间</h2>
+    <div class="form-group"><label>房间号</label><input id="joinRoom" maxlength="4" style="text-transform:uppercase;font-size:20px;letter-spacing:4px;text-align:center" placeholder="ABCD"></div>
+    <div class="form-group"><label>你的角色身份</label>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button type="button" id="modeCustom" class="btn btn-primary" style="margin-top:0" onclick="setMode('custom')">✍️ 自己写</button>
+        <button type="button" id="modeRandom" class="btn btn-ghost" style="margin-top:0" onclick="setMode('random')">🎲 随机一个</button>
+      </div>
+      <div id="customCharBox">
+        <input id="joinName" placeholder="你的角色名，比如：王小明">
+        <input id="joinRole" placeholder="你的身份，比如：退休警察/大学生/厨师" style="margin-top:8px">
+      </div>
+      <div id="randomCharBox" style="display:none;background:var(--bg3);padding:14px;border-radius:8px;font-size:14px;line-height:1.6">
+        <div id="randomCharPreview">点上面"随机一个"按钮，AI给你抽个身份</div>
+      </div>
     </div>
     <button class="btn btn-primary" onclick="joinRoom()">🎲 加入游戏</button>
   </div>
 </div>
 
-<!-- ===== 游戏界面 ===== -->
 <div id="game">
   <div class="topbar">
     <span class="room-badge" id="topRoom">----</span>
     <span class="players-info" id="topPlayers"></span>
     <div class="spacer"></div>
-    <button class="btn-start" id="btnStart" onclick="startGame()" style="display:none">▶ 开始游戏</button>
-    <button onclick="toggleSidebar('left')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;cursor:pointer">👥</button>
-    <button onclick="toggleSidebar('right')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;cursor:pointer">🎭</button>
+    <button id="btnGenOpts" class="dm-action-btn" onclick="genOpts()" style="display:none">🎲 生成剧本选项</button>
   </div>
-
   <div class="main">
-    <!-- 左侧 -->
     <div class="sidebar-left" id="sidebarLeft">
-      <div class="panel">
-        <h3>👥 玩家</h3>
-        <div id="playerList"></div>
-      </div>
-      <div class="panel" id="npcPanel" style="display:none">
-        <h3>🧑 NPC（关键人物）</h3>
-        <div id="npcList"></div>
-      </div>
-      <div class="panel" id="cluePanel" style="display:none">
-        <h3>🔍 已发现线索</h3>
-        <div id="clueList"></div>
-      </div>
-      <div class="panel">
-        <h3>🎲 掷骰记录</h3>
-        <div id="diceList"></div>
+      <div class="panel"><h3>👥 玩家</h3><div id="playerList"></div></div>
+      <div class="panel" id="npcPanel" style="display:none"><h3>🧑 NPC</h3><div id="npcList"></div></div>
+      <div class="panel" id="cluePanel" style="display:none"><h3>🔍 线索</h3><div id="clueList"></div></div>
+      <div class="panel"><h3>🎲 掷骰记录</h3><div id="diceList"></div></div>
+      <div class="panel" id="dmPointsPanel" style="display:none"><h3>⚙️ DM设置</h3>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:6px">属性总点数</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="range" id="dmPoints" min="5" max="30" value="10" style="flex:1" oninput="document.getElementById('dmPointsVal').textContent=this.value">
+          <span id="dmPointsVal" style="font-weight:700;color:var(--gold)">10</span>
+        </div>
+        <button class="btn btn-primary" style="margin-top:8px;font-size:13px;padding:8px" onclick="setDmPoints()">应用</button>
       </div>
     </div>
-
-    <!-- 中间剧情流 -->
     <div class="story" id="story"></div>
-
-    <!-- 右侧 -->
     <div class="sidebar-right" id="sidebarRight">
-      <div class="panel">
-        <h3>🎭 我的角色</h3>
-        <div id="myChar"></div>
-      </div>
-      <div class="panel" id="scenarioPanel" style="display:none">
-        <h3>📖 当前剧本</h3>
-        <div id="scenarioInfo" class="scenario-box"></div>
-      </div>
+      <div class="panel"><h3>🎭 我的角色</h3><div id="myChar"></div></div>
+      <div class="panel" id="scenarioPanel" style="display:none"><h3>📖 剧本</h3><div id="scenarioInfo" class="scenario-box"></div></div>
     </div>
   </div>
-
-  <!-- DM 底部 -->
   <div class="input-bar" id="dmBar" style="display:none">
-    <input id="dmInput" placeholder="📢 描述你看到的场景...（比如：你们推开大门，发现地上有一具尸体）" onkeydown="if(event.key==='Enter')dmScene()">
+    <input id="dmInput" placeholder="📢 描述场景..." onkeydown="if(event.key==='Enter')dmScene()">
     <button class="send-btn" onclick="dmScene()">发送</button>
-    <button class="dice-btn" onclick="aiDm()">🤖 AI裁定</button>
   </div>
-
-  <!-- 玩家底部 -->
   <div class="input-bar" id="playerBar" style="display:none">
-    <select class="dice-select" id="diceSides">
-      <option value="20">d20</option>
-      <option value="6">d6</option>
-      <option value="100">d100</option>
-    </select>
+    <button class="ready-btn" id="readyBtn" onclick="toggleReady()">✅ 准备</button>
+    <select class="dice-select" id="diceSides"><option value="20">d20</option><option value="6">d6</option><option value="100">d100</option></select>
     <button class="dice-btn" onclick="rollDice()">🎲</button>
-    <input id="actionInput" placeholder="✊ 你要做什么？（比如：我检查尸体）" onkeydown="if(event.key==='Enter')sendAction()">
+    <input id="actionInput" placeholder="✊ 你要做什么？" onkeydown="if(event.key==='Enter')sendAction()">
     <button class="send-btn" onclick="sendAction()">行动</button>
   </div>
-
   <div class="mobile-tabs">
-    <div class="mobile-tab active" onclick="mobileTab('story',this)">📖 剧情</div>
-    <div class="mobile-tab" onclick="mobileTab('left',this)">👥 玩家</div>
-    <div class="mobile-tab" onclick="mobileTab('right',this)">🎭 角色</div>
+    <div class="mobile-tab active" onclick="mobileTab('story',this)">📖</div>
+    <div class="mobile-tab" onclick="mobileTab('left',this)">👥</div>
+    <div class="mobile-tab" onclick="mobileTab('right',this)">🎭</div>
   </div>
 </div>
 
 <script>
-let ws, myId, roomId, isDM, room = null;
-let role = 'dm';
+let ws, myId, roomId, isDM, room = null, role = 'dm', selectedOption = -1;
 
+let ws, myId, roomId, isDM, room = null, role = 'dm', selectedOption = -1, charMode = 'custom';
+
+const RANDOM_CHARS = [
+  {name:'王小明', role:'刚毕业的大学生', desc:'来这个城市找工作，口袋里只剩200块'},
+  {name:'李姐', role:'夜班出租车司机', desc:'开了10年夜班车，什么客人都见过'},
+  {name:'老张', role:'退休邮递员', desc:'在这片区送了30年信，谁家什么事都知道'},
+  {name:'小陈', role:'便利店店员', desc:'通宵上班，今晚店里只有你一个人'},
+  {name:'赵哥', role:'装修工人', desc:'刚干完一单活，正在等下一单'},
+  {name:'小周', role:'外卖骑手', desc:'今晚跑到第40单了，腿都酸了'},
+  {name:'孙叔', role:'小区保安', desc:'值夜班，巡逻时听到奇怪的声音'},
+  {name:'阿琳', role:'咖啡店老板', desc:'刚关门，正在擦最后一个杯子'},
+];
+
+let statVals = { str:1, agi:1, int:1, wil:1, con:1 };
+function remainingPoints() {
+  const total = room?.statPoints || 10;
+  const used = Object.values(statVals).reduce((a,b)=>a+b,0);
+  return total - used;
+}
+function updateStatDisplay() {
+  document.getElementById('statStrVal').textContent = statVals.str;
+  document.getElementById('statAgiVal').textContent = statVals.agi;
+  document.getElementById('statIntVal').textContent = statVals.int;
+  document.getElementById('statWilVal').textContent = statVals.wil;
+  document.getElementById('statConVal').textContent = statVals.con;
+  const rem = remainingPoints();
+  const el = document.getElementById('statRem');
+  if(el) el.innerHTML = `剩余点数：<b>${rem}</b> / ${room?.statPoints||10}`;
+}
+function setStat(k, v) { statVals[k] = parseInt(v); updateStatDisplay(); }
+function saveStats() {
+  if(remainingPoints() !== 0) { alert(`还剩${remainingPoints()}点没分配完！`); return; }
+  ws.send(JSON.stringify({ type:'set_stats', stats: {...statVals} }));
+}
+function setDmPoints() {
+  const p = parseInt(document.getElementById('dmPoints').value);
+  ws.send(JSON.stringify({ type:'set_stat_points', points: p }));
+}
+
+function setMode(m) {
+  charMode = m;
+  document.getElementById('modeCustom').className = m==='custom' ? 'btn btn-primary' : 'btn btn-ghost';
+  document.getElementById('modeRandom').className = m==='random' ? 'btn btn-primary' : 'btn btn-ghost';
+  document.getElementById('customCharBox').style.display = m==='custom' ? '' : 'none';
+  document.getElementById('randomCharBox').style.display = m==='random' ? '' : 'none';
+  if(m==='random') randomChar();
+}
+function randomChar() {
+  const c = RANDOM_CHARS[Math.floor(Math.random()*RANDOM_CHARS.length)];
+  document.getElementById('randomCharPreview').innerHTML = `<b style="color:var(--gold)">${c.name}</b><br>${c.role}<br><span style="color:var(--dim);font-size:13px">${c.desc}</span>`;
+}
 function chooseRole(r) {
   role = r;
   document.getElementById('cardDM').classList.toggle('active', r==='dm');
@@ -320,174 +304,129 @@ function chooseRole(r) {
   document.getElementById('formDM').style.display = r==='dm' ? '' : 'none';
   document.getElementById('formPlayer').style.display = r==='player' ? '' : 'none';
 }
-
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(proto + '//' + location.host + '/ws');
   ws.onmessage = (e) => {
     const msg = JSON.parse(e.data);
-    switch(msg.type) {
-      case 'created': roomId = msg.roomId; myId = msg.myId; isDM = true; break;
-      case 'joined': roomId = msg.roomId; myId = msg.myId; isDM = false; break;
-      case 'state': room = msg.data; render(); break;
-      case 'error': alert(msg.msg); break;
-    }
+    if(msg.type==='created'){roomId=msg.roomId;myId=msg.myId;isDM=true;}
+    if(msg.type==='joined'){roomId=msg.roomId;myId=msg.myId;isDM=false;}
+    if(msg.type==='state'){room=msg.data;render();}
+    if(msg.type==='error'){alert(msg.msg);}
   };
 }
-
 function createRoom() {
   const name = document.getElementById('createName').value || '主持人';
   const apiKey = document.getElementById('apiKey').value;
-  const maxP = parseInt(document.getElementById('maxPlayers').value) || 3;
-  const theme = document.getElementById('theme').value;
+  const maxP = parseInt(document.getElementById('maxPlayers').value)||3;
   connect();
-  ws.onopen = () => {
-    ws.send(JSON.stringify({ type:'create', name, apiKey, maxPlayers: maxP+1 }));
-    setTimeout(() => { showGame(); if(apiKey) generateScenario(theme); }, 500);
-  };
+  ws.onopen = () => { ws.send(JSON.stringify({type:'create',name,apiKey,maxPlayers:maxP+1})); setTimeout(showGame,500); };
 }
-
 function joinRoom() {
-  const name = document.getElementById('joinName').value.trim();
   const rid = document.getElementById('joinRoom').value.toUpperCase().trim();
-  if(!name) { alert('先填你的角色名'); return; }
-  if(!rid || rid.length !== 4) { alert('房间号是4位字母，让主持人告诉你'); return; }
+  if(!rid||rid.length!==4){alert('房间号4位字母');return;}
+  let name, roleName;
+  if(charMode==='custom'){
+    name = document.getElementById('joinName').value.trim();
+    roleName = document.getElementById('joinRole').value.trim();
+    if(!name){alert('填角色名');return;}
+  } else {
+    const txt = document.getElementById('randomCharPreview').textContent;
+    name = txt.split('\n')[0];
+    roleName = txt.split('\n')[1]||'普通人';
+  }
   connect();
-  ws.onopen = () => {
-    ws.send(JSON.stringify({ type:'join', name, roomId: rid }));
-    setTimeout(() => showGame(), 500);
-  };
+  ws.onopen = () => { ws.send(JSON.stringify({type:'join',name,roomId:rid,role:roleName})); setTimeout(showGame,500); };
 }
-
-function generateScenario(theme) {
-  ws.send(JSON.stringify({ type:'ai_scenario', theme }));
-}
-
-function startGame() {
-  ws.send(JSON.stringify({ type:'start' }));
-}
-
-function dmScene() {
-  const v = document.getElementById('dmInput').value.trim();
-  if(!v) return;
-  ws.send(JSON.stringify({ type:'dm_scene', text:v }));
-  document.getElementById('dmInput').value = '';
-}
-
-function sendAction() {
-  const v = document.getElementById('actionInput').value.trim();
-  if(!v) return;
-  ws.send(JSON.stringify({ type:'player_action', text:v }));
-  document.getElementById('actionInput').value = '';
-}
-
-function rollDice() {
-  const sides = parseInt(document.getElementById('diceSides').value);
-  ws.send(JSON.stringify({ type:'dice', sides }));
-}
-
-function aiDm() {
-  const last = [...(room?.log||[])].reverse().find(l => l.type === 'action');
-  if(!last) { alert('还没有玩家行动可以裁定'); return; }
-  ws.send(JSON.stringify({ type:'ai_dm_reply', playerName: last.player, actionText: last.text }));
-}
-
-function toggleSidebar(which) {
-  const el = document.getElementById('sidebar'+which.charAt(0).toUpperCase()+which.slice(1));
-  el.classList.toggle('show');
-}
-function mobileTab(tab, el) {
-  document.querySelectorAll('.mobile-tab').forEach(e=>e.classList.remove('active'));
-  el.classList.add(tab);
-  document.getElementById('sidebarLeft').classList.remove('show');
-  document.getElementById('sidebarRight').classList.remove('show');
-  if(tab==='left') document.getElementById('sidebarLeft').classList.add('show');
-  if(tab==='right') document.getElementById('sidebarRight').classList.add('show');
-}
-
-function showGame() {
-  document.getElementById('home').style.display = 'none';
-  document.getElementById('game').style.display = 'flex';
-}
+function showGame(){document.getElementById('home').style.display='none';document.getElementById('game').style.display='flex';}
+function dmScene(){const v=document.getElementById('dmInput').value.trim();if(!v)return;ws.send(JSON.stringify({type:'dm_scene',text:v}));document.getElementById('dmInput').value='';}
+function sendAction(){const v=document.getElementById('actionInput').value.trim();if(!v)return;ws.send(JSON.stringify({type:'player_action',text:v}));document.getElementById('actionInput').value='';}
+function rollDice(){const s=parseInt(document.getElementById('diceSides').value);ws.send(JSON.stringify({type:'dice',sides:s}));}
+function toggleReady(){ws.send(JSON.stringify({type:'player_ready'}));}
+function genOpts(){ws.send(JSON.stringify({type:'generate_options'}));}
+function voteOption(i){selectedOption=i;ws.send(JSON.stringify({type:'vote_scenario',optionIndex:i}));render();}
+function approve(yes){ws.send(JSON.stringify({type:'approve_scenario',approve:yes}));}
 
 function render() {
-  if(!room) return;
-  document.getElementById('topRoom').textContent = room.id;
-  document.getElementById('topPlayers').textContent = `${room.players.length}/${room.maxPlayers}人`;
-  document.getElementById('btnStart').style.display = isDM ? '' : 'none';
+  if(!room)return;
+  document.getElementById('topRoom').textContent=room.id;
+  document.getElementById('topPlayers').textContent=`${room.players.length}/${room.maxPlayers}人`;
+  document.getElementById('btnGenOpts').style.display=(isDM&&room.state==='lobby')?'':'none';
 
   // 玩家列表
-  document.getElementById('playerList').innerHTML = room.players.map(p =>
-    `<div class="player-chip"><span class="dot"></span>${p.name}${p.isDM?'<span class="dm-tag">DM</span>':''}</div>`
+  document.getElementById('playerList').innerHTML=room.players.map(p=>
+    `<div class="player-chip ${p.ready?'ready':''}"><span class="dot"></span>${p.name}${p.isDM?'<span class="dm-tag">DM</span>':''}${p.ready?' ✓':''}</div>`
   ).join('');
 
-  // NPC
-  if(room.scenario?.npcs?.length) {
-    document.getElementById('npcPanel').style.display='';
-    document.getElementById('npcList').innerHTML = room.scenario.npcs.map(n=>
-      `<div class="npc-item"><b>${n.name}</b><br>${n.description}</div>`
-    ).join('');
-  }
-  // 线索
-  if(room.scenario?.clues?.length) {
-    document.getElementById('cluePanel').style.display='';
-    document.getElementById('clueList').innerHTML = room.scenario.clues.map(c=>
-      `<div class="clue-item">🔍 ${c}</div>`
-    ).join('');
-  }
-  // 掷骰记录（从log里提取所有dice类型）
-  const diceLogs = room.log.filter(l => l.type === 'dice').slice(-10).reverse();
-  document.getElementById('diceList').innerHTML = diceLogs.length ? diceLogs.map(d =>
-    `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
-      <span style="color:var(--dim)">${d.player}</span>
-      <span style="color:var(--gold);font-weight:700;margin-left:6px">d${d.sides}=${d.roll}</span>
-    </div>`
-  ).join('') : '<div style="font-size:12px;color:var(--dim);padding:8px 0">还没有人掷骰</div>';
+  // NPC/线索
+  if(room.scenario?.npcs?.length){document.getElementById('npcPanel').style.display='';document.getElementById('npcList').innerHTML=room.scenario.npcs.map(n=>`<div class="npc-item"><b>${n.name}</b><br>${n.description}</div>`).join('');}
+  if(room.scenario?.clues?.length){document.getElementById('cluePanel').style.display='';document.getElementById('clueList').innerHTML=room.scenario.clues.map(c=>`<div class="clue-item">🔍 ${c}</div>`).join('');}
+
+  // 掷骰记录
+  const dl=room.log.filter(l=>l.type==='dice').slice(-10).reverse();
+  document.getElementById('diceList').innerHTML=dl.length?dl.map(d=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--dim)">${d.player}</span><span style="color:var(--gold);font-weight:700;margin-left:6px">d${d.sides}=${d.roll}</span></div>`).join(''):'<div style="font-size:12px;color:var(--dim)">还没人掷骰</div>';
+
   // 剧本
-  if(room.scenario) {
-    document.getElementById('scenarioPanel').style.display='';
-    document.getElementById('scenarioInfo').innerHTML = `
-      <b style="color:var(--text);font-size:15px">《${room.scenario.title}》</b><br><br>
-      ${room.scenario.background||''}<br><br>
-      <span class="scene">📍 当前场景：</span>${room.scenario.setting||''}
-    `;
-  }
+  if(room.scenario){document.getElementById('scenarioPanel').style.display='';document.getElementById('scenarioInfo').innerHTML=`<b style="color:var(--text)">《${room.scenario.title}》</b><br><br>${room.scenario.background||''}<br><br><span style="color:var(--gold)">📍 ${room.scenario.setting||''}</span>`;}
+
   // 我的角色
-  const me = room.players.find(p => p.id === myId);
-  if(me) {
-    const charInfo = room.scenario?.characters?.[me.id-1];
-    document.getElementById('myChar').innerHTML = `
-      <div class="char-card">
-        <h4>${me.name}${me.isDM?'（主持人）':''}</h4>
-        ${me.isDM ? '<div class="row">你是主持人，负责讲故事和裁定</div>' : `
-          <div class="row"><b style="color:var(--text)">身份：</b>${charInfo?.role||'冒险者'}</div>
-          <div class="row"><b style="color:var(--text)">目标：</b>${charInfo?.goal||'活下去'}</div>
-          <div class="row"><b style="color:var(--text)">背景：</b>${charInfo?.description||''}</div>
-        `}
+  const me=room.players.find(p=>p.id===myId);
+  if(me){const ci=room.scenario?.characters?.[me.id-1];
+    const roleDisplay = me.customRole || ci?.role || '冒险者';
+    let statsHtml = '';
+    if(me.stats){
+      const s = me.stats;
+      statsHtml = `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;line-height:1.8">
+        💪力量<span style="color:var(--gold)">${s.str}</span> 🏃敏捷<span style="color:var(--gold)">${s.agi}</span><br>
+        🧠智力<span style="color:var(--gold)">${s.int}</span> 🛡️意志<span style="color:var(--gold)">${s.wil}</span><br>
+        ❤️体质<span style="color:var(--gold)">${s.con}</span>
       </div>`;
+    }
+    document.getElementById('myChar').innerHTML=`<div class="char-card"><h4>${me.name}${me.isDM?'（DM）':''}</h4>${me.isDM?'<div class="row">讲故事和裁定</div>':`<div class="row"><b style="color:var(--text)">身份：</b>${roleDisplay}</div>${ci?.goal?`<div class="row"><b style="color:var(--text)">目标：</b>${ci.goal}</div>`:''}${ci?.description?`<div class="row" style="margin-top:8px;line-height:1.6"><b style="color:var(--text)">你的故事：</b><br>${ci.description}</div>`:''}${statsHtml}`}</div>`;
   }
+
   // 底部栏
-  document.getElementById('dmBar').style.display = isDM ? 'flex' : 'none';
-  document.getElementById('playerBar').style.display = isDM ? 'none' : 'flex';
+  const inGame=room.state==='playing';
+  document.getElementById('dmBar').style.display=(isDM&&inGame)?'flex':'none';
+  document.getElementById('playerBar').style.display=(!isDM&&(room.state==='lobby'||inGame))?'flex':'none';
+  const readyBtn=document.getElementById('readyBtn');
+  if(me){readyBtn.classList.toggle('ready',!!me.ready);readyBtn.textContent=me.ready?'✅ 已准备':'✅ 准备';}
+
+  // DM设置面板
+  document.getElementById('dmPointsPanel').style.display = isDM ? '' : 'none';
 
   // 剧情流
-  const storyEl = document.getElementById('story');
-  if(room.log.length === 0) {
-    storyEl.innerHTML = `
-      <div class="story-empty">
-        <div class="big-icon">🎭</div>
-        <p style="font-size:16px; margin-bottom:8px">${isDM ? '玩家到齐后，点上面"开始游戏"' : '等待主持人开始游戏...'}</p>
-        <p style="font-size:13px">${isDM ? '然后在下面描述你看到的场景开始讲故事' : '主持人会描述你们在哪里，然后你输入要做什么'}</p>
-      </div>`;
+  const storyEl=document.getElementById('story');
+  // 属性分配面板
+  if(room.state==='lobby' && !isDM && !me?.stats){
+    storyEl.innerHTML=`<div class="stat-box"><h3 style="text-align:center;margin-bottom:16px">📊 分配你的属性（共${room.statPoints||10}点）</h3>
+      <div class="stat-row"><label>💪 力量</label><input type="range" min="1" max="10" value="${statVals.str}" oninput="setStat('str',this.value);updateStatDisplay()"><span class="val" id="statStrVal">${statVals.str}</span></div>
+      <div class="stat-row"><label>🏃 敏捷</label><input type="range" min="1" max="10" value="${statVals.agi}" oninput="setStat('agi',this.value);updateStatDisplay()"><span class="val" id="statAgiVal">${statVals.agi}</span></div>
+      <div class="stat-row"><label>🧠 智力</label><input type="range" min="1" max="10" value="${statVals.int}" oninput="setStat('int',this.value);updateStatDisplay()"><span class="val" id="statIntVal">${statVals.int}</span></div>
+      <div class="stat-row"><label>🛡️ 意志</label><input type="range" min="1" max="10" value="${statVals.wil}" oninput="setStat('wil',this.value);updateStatDisplay()"><span class="val" id="statWilVal">${statVals.wil}</span></div>
+      <div class="stat-row"><label>❤️ 体质</label><input type="range" min="1" max="10" value="${statVals.con}" oninput="setStat('con',this.value);updateStatDisplay()"><span class="val" id="statConVal">${statVals.con}</span></div>
+      <div class="stat-remaining" id="statRem"></div>
+      <button class="btn btn-primary" onclick="saveStats()">✅ 确认分配</button>
+    </div>`;
+    updateStatDisplay();
+  } else if(room.state==='voting'&&room.options){
+    storyEl.innerHTML=`<div class="vote-box"><h3 style="margin-bottom:16px">🗳️ 投票选剧本（${Object.keys(room.votes).length}/${room.players.filter(p=>!p.isDM).length}已投）</h3>`+
+      room.options.map((o,i)=>`<div class="vote-option ${selectedOption===i?'selected':''}" onclick="${isDM?'':`voteOption(${i})`}"><h4>${o.title}</h4><p><b style="color:var(--gold)">${o.theme}</b> — ${o.outline}</p></div>`).join('')+
+      `</div>`;
+  } else if(room.state==='preview'&&room.scenario){
+    storyEl.innerHTML=`<div class="vote-box"><h3 style="margin-bottom:16px">📖 剧本大纲</h3><div style="background:var(--bg3);padding:16px;border-radius:10px;margin-bottom:16px"><b style="font-size:16px">《${room.scenario.title}》</b><br><br>${room.scenario.background||''}</div><p style="text-align:center;margin-bottom:12px">${Object.keys(room.approveVotes).length}/${room.players.filter(p=>!p.isDM).length} 已投票</p><div class="vote-actions"><button class="btn btn-approve" onclick="approve(true)">✅ 接受，开始玩</button><button class="btn btn-reject" onclick="approve(false)">🔄 重roll</button></div></div>`;
+  } else if(room.log.length===0){
+    storyEl.innerHTML=`<div class="story-empty"><div class="big-icon">🎭</div><p style="font-size:16px;margin-bottom:8px">${isDM?'等玩家到齐，点"生成剧本选项"':'等DM生成剧本选项...'}</p><p style="font-size:13px">${isDM?'玩家点准备后，生成3个选项大家投票选':'你点"准备"按钮表示准备好了'}</p></div>`;
   } else {
-    storyEl.innerHTML = room.log.map(l => {
-      const whoMap = { dm:'📢 主持人', dm_reply:'📢 主持人裁定', action:l.player+' 的行动', dice:'🎲 '+l.player+' 掷骰', system:'⚡ 系统' };
-      const whatMap = { dm:l.text, dm_reply:l.text, action:l.text, dice:`d${l.sides} = ${l.roll}`, system:l.text };
-      return `<div class="log-entry ${l.type}"><div class="who">${whoMap[l.type]||''}</div><div class="what">${whatMap[l.type]||''}</div></div>`;
+    storyEl.innerHTML=room.log.map(l=>{
+      const wm={dm:'📢 主持人',dm_reply:'📢 主持人',action:l.player+' 的行动',dice:'🎲 '+l.player+' 掷骰',system:'⚡ 系统'};
+      const tm={dm:l.text,dm_reply:l.text,action:l.text,dice:`d${l.sides} = ${l.roll}`,system:l.text};
+      return `<div class="log-entry ${l.type}"><div class="who">${wm[l.type]||''}</div><div class="what">${tm[l.type]||''}</div></div>`;
     }).join('');
   }
-  storyEl.scrollTop = storyEl.scrollHeight;
+  storyEl.scrollTop=storyEl.scrollHeight;
 }
+function mobileTab(t,el){document.querySelectorAll('.mobile-tab').forEach(e=>e.classList.remove('active'));el.classList.add('active');document.getElementById('sidebarLeft').classList.remove('show');document.getElementById('sidebarRight').classList.remove('show');if(t==='left')document.getElementById('sidebarLeft').classList.add('show');if(t==='right')document.getElementById('sidebarRight').classList.add('show');}
 </script>
 </body>
 </html>
