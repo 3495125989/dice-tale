@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>骰语 DiceTale v1.4.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>骰语 DiceTale v1.5.0</title>
 <style>
 :root{--bg:#0f1115;--bg2:#1a1d24;--bg3:#242830;--border:#2e3340;--text:#e4e6eb;--dim:#8b8fa3;--accent:#6c8cff;--gold:#d4a853;--red:#e05555;--green:#5ec48a}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -17,8 +17,6 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .role-card{flex:1;background:var(--bg2);border:2px solid var(--border);border-radius:16px;padding:24px;cursor:pointer;transition:all .2s;text-align:center}
 .role-card:hover,.role-card.active{border-color:var(--accent);background:var(--bg3)}
 .role-card .icon{font-size:40px;margin-bottom:12px}
-.role-card h3{font-size:18px;margin-bottom:8px}
-.role-card p{font-size:13px;color:var(--dim);line-height:1.5}
 .form-box{max-width:420px;margin:0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px}
 .form-box h2{font-size:16px;margin-bottom:16px}
 .form-group{margin-bottom:14px}
@@ -27,22 +25,21 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .form-group .hint{font-size:12px;color:var(--dim);margin-top:4px}
 .btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px}
 .btn-primary{background:var(--accent);color:#fff}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--dim)}
 #game{flex:1;display:none;flex-direction:column;height:100vh}
 .topbar{height:52px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
 .room-badge{background:var(--gold);color:#1a1a1a;padding:6px 14px;border-radius:8px;font-weight:800;font-size:16px;letter-spacing:2px}
 .players-info{color:var(--dim);font-size:13px}
 .spacer{flex:1}
+.dm-action-btn{background:var(--gold);color:#1a1a1a;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;margin-left:8px}
 .main{flex:1;display:flex;overflow:hidden}
-.sidebar-left{width:230px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.sidebar-left{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
 .panel{border-bottom:1px solid var(--border);padding:14px}
 .panel h3{font-size:12px;color:var(--dim);margin-bottom:10px;letter-spacing:1px}
 .player-chip{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;margin-bottom:6px;background:var(--bg3);font-size:14px}
+.player-chip.current{border:2px solid var(--green)}
 .player-chip .dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
 .player-chip.ready .dot{background:var(--green)}
 .dm-tag{background:var(--gold);color:#1a1a1a;font-size:11px;padding:2px 6px;border-radius:4px;font-weight:700}
-.npc-item,.clue-item{font-size:13px;color:var(--dim);padding:8px 0;border-bottom:1px solid var(--border);line-height:1.5}
-.npc-item b{color:var(--text)}
 .story{flex:1;overflow-y:auto;padding:20px 24px}
 .story-empty{text-align:center;color:var(--dim);padding:60px 20px}
 .story-empty .big-icon{font-size:48px;margin-bottom:16px}
@@ -55,46 +52,25 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .log-entry.system .who{color:var(--red)}
 .log-entry .what{font-size:15px;line-height:1.7}
 .log-entry.dice .what{font-size:24px;font-weight:800;color:var(--green)}
-.sidebar-right{width:250px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.sidebar-right{width:260px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
 .char-card{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:12px}
 .char-card h4{font-size:15px;margin-bottom:8px}
 .char-card .row{font-size:13px;color:var(--dim);margin-bottom:4px;line-height:1.5}
-.scenario-box{font-size:13px;line-height:1.6;color:var(--dim)}
-.scenario-box b{color:var(--text)}
 .input-bar{background:var(--bg2);border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:8px;align-items:center;flex-shrink:0}
 .input-bar input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;outline:none}
-.dice-btn{background:var(--gold);color:#1a1a1a;border:none;padding:12px 16px;border-radius:10px;cursor:pointer;font-weight:800;font-size:15px;white-space:nowrap}
+.dice-btn{background:var(--gold);color:#1a1a1a;border:none;padding:12px 16px;border-radius:10px;cursor:pointer;font-weight:800;font-size:15px}
 .send-btn{background:var(--accent);color:#fff;border:none;padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:600;font-size:15px}
+.ready-btn{background:var(--green);color:#1a1a1a;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px}
 .vote-box{max-width:600px;margin:0 auto;padding:20px}
 .vote-option{background:var(--bg3);border:2px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s}
 .vote-option:hover{border-color:var(--accent)}
-.vote-option.selected{border-color:var(--green);background:rgba(94,196,138,.1)}
-.vote-option h4{font-size:16px;margin-bottom:6px}
-.vote-option p{font-size:13px;color:var(--dim);line-height:1.5}
-.vote-actions{display:flex;gap:12px;margin-top:16px}
-.ready-btn{background:var(--green);color:#1a1a1a;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px}
-.ready-btn.ready{background:var(--dim);color:#fff}
-.dm-action-btn{background:var(--gold);color:#1a1a1a;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px}
+.vote-option.selected{border-color:var(--green)}
 .stat-box{max-width:500px;margin:0 auto;padding:20px}
 .stat-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .stat-row label{width:80px;font-size:14px}
 .stat-row input[type=range]{flex:1}
 .stat-row .val{width:30px;text-align:center;font-weight:700;color:var(--gold)}
-.stat-remaining{text-align:center;font-size:16px;margin:12px 0}
-.stat-remaining b{color:var(--gold);font-size:20px}
-.prob-bar{height:8px;background:var(--bg3);border-radius:4px;margin-top:4px;overflow:hidden}
-.prob-bar .fill{height:100%;background:var(--green);border-radius:4px}
-.dm-review-box{background:var(--bg3);border:2px solid var(--gold);border-radius:12px;padding:16px;margin:12px 0}
-.dm-review-box textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:14px;min-height:80px;resize:vertical}
-.mobile-tabs{display:none}
-@media(max-width:768px){
-  .sidebar-left,.sidebar-right{display:none}
-  .mobile-tabs{display:flex;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0}
-  .mobile-tab{flex:1;text-align:center;padding:12px;font-size:13px;color:var(--dim);cursor:pointer}
-  .mobile-tab.active{color:var(--accent)}
-  .role-cards{flex-direction:column}
-  .story{padding:14px}
-}
+textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;min-height:60px;resize:vertical;outline:none;font-family:inherit}
 </style>
 </head>
 <body>
@@ -102,7 +78,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 <div id="home">
   <div class="home-header">
     <div class="logo">骰<span>语</span></div>
-    <div class="subtitle">DiceTale v1.4.0 · 多人联机跑团主持台</div>
+    <div class="subtitle">DiceTale v1.5.0 · 多人联机跑团主持台</div>
   </div>
   <div class="role-cards">
     <div class="role-card active" id="cardDM" onclick="chooseRole('dm')">
@@ -127,19 +103,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
   <div id="formPlayer" class="form-box" style="display:none">
     <h2>🚪 加入房间</h2>
     <div class="form-group"><label>房间号</label><input id="joinRoom" maxlength="4" style="text-transform:uppercase;font-size:20px;letter-spacing:4px;text-align:center" placeholder="ABCD"></div>
-    <div class="form-group"><label>你的角色身份</label>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <button type="button" id="modeCustom" class="btn btn-primary" style="margin-top:0" onclick="setMode('custom')">✍️ 自己写</button>
-        <button type="button" id="modeRandom" class="btn btn-ghost" style="margin-top:0" onclick="setMode('random')">🎲 随机一个</button>
-      </div>
-      <div id="customCharBox">
-        <input id="joinName" placeholder="你的角色名，比如：王小明">
-        <input id="joinRole" placeholder="你的身份，比如：退休警察" style="margin-top:8px">
-      </div>
-      <div id="randomCharBox" style="display:none;background:var(--bg3);padding:14px;border-radius:8px;font-size:14px;line-height:1.6">
-        <div id="randomCharPreview">点上面"随机一个"按钮</div>
-      </div>
-    </div>
+    <div class="form-group"><label>你的称呼</label><input id="joinName" placeholder="你的名字"></div>
     <button class="btn btn-primary" onclick="joinRoom()">🎲 加入游戏</button>
   </div>
 </div>
@@ -151,12 +115,11 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
     <div class="spacer"></div>
     <button id="btnStartOutlines" class="dm-action-btn" onclick="startOutlines()" style="display:none">✏️ 开始写大纲</button>
     <button id="btnGenOpening" class="dm-action-btn" onclick="genOpening()" style="display:none;background:var(--green);color:#1a1a1a">🎬 生成开场白</button>
+    <button id="btnNextTurn" class="dm-action-btn" onclick="nextTurn()" style="display:none">⏭️ 下一位</button>
   </div>
   <div class="main">
-    <div class="sidebar-left" id="sidebarLeft">
-      <div class="panel"><h3>👥 玩家</h3><div id="playerList"></div></div>
-      <div class="panel" id="npcPanel" style="display:none"><h3>🧑 NPC</h3><div id="npcList"></div></div>
-      <div class="panel" id="cluePanel" style="display:none"><h3>🔍 线索</h3><div id="clueList"></div></div>
+    <div class="sidebar-left">
+      <div class="panel"><h3>👥 玩家（回合顺序）</h3><div id="playerList"></div></div>
       <div class="panel"><h3>🎲 掷骰记录</h3><div id="diceList"></div></div>
       <div class="panel" id="dmPointsPanel" style="display:none"><h3>⚙️ DM设置</h3>
         <div style="font-size:12px;color:var(--dim);margin-bottom:6px">属性总点数</div>
@@ -168,9 +131,16 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
       </div>
     </div>
     <div class="story" id="story"></div>
-    <div class="sidebar-right" id="sidebarRight">
+    <div class="sidebar-right">
       <div class="panel"><h3>🎭 我的角色</h3><div id="myChar"></div></div>
-      <div class="panel" id="scenarioPanel" style="display:none"><h3>📖 剧本</h3><div id="scenarioInfo" class="scenario-box"></div></div>
+      <div class="panel"><h3>🎯 共同目标</h3><div id="mainGoal" style="font-size:13px;line-height:1.6;color:var(--gold)"></div></div>
+      <div class="panel"><h3>📖 剧本</h3><div id="scenarioInfo" style="font-size:13px;line-height:1.6;color:var(--dim)"></div></div>
+      <div class="panel"><h3>📒 公开笔记本</h3>
+        <textarea id="publicNotes" placeholder="大家一起记重要线索..." onchange="saveNotes(this.value)"></textarea>
+      </div>
+      <div class="panel"><h3>🔒 私人笔记</h3>
+        <textarea id="privateNotes" placeholder="只有你能看到" style="min-height:100px" onchange="localStorage.setItem('dice_private',this.value)"></textarea>
+      </div>
     </div>
   </div>
   <div class="input-bar" id="dmBar" style="display:none">
@@ -183,110 +153,32 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
     <input id="actionInput" placeholder="✊ 你要做什么？" onkeydown="if(event.key==='Enter')sendAction()">
     <button class="send-btn" onclick="sendAction()">行动</button>
   </div>
-  <div class="mobile-tabs">
-    <div class="mobile-tab active">📖</div>
-    <div class="mobile-tab">👥</div>
-    <div class="mobile-tab">🎭</div>
-  </div>
 </div>
 
 <script>
-let ws=null,myId=null,roomId=null,isDM=false,room=null,role='dm',charMode='custom',selectedOption=-1;
+let ws=null,myId=null,roomId=null,isDM=false,room=null,role='dm';
 let statVals={str:1,agi:1,int:1,wil:1,con:1};
 
-const RANDOM_CHARS=[
-  {name:'王小明',role:'刚毕业的大学生',desc:'来这个城市找工作'},
-  {name:'李姐',role:'夜班出租车司机',desc:'开了10年夜班车'},
-  {name:'老张',role:'退休邮递员',desc:'在这片区送了30年信'},
-  {name:'小陈',role:'便利店店员',desc:'通宵上班'},
-  {name:'赵哥',role:'装修工人',desc:'刚干完一单活'},
-  {name:'小周',role:'外卖骑手',desc:'今晚跑到第40单'},
-  {name:'孙叔',role:'小区保安',desc:'值夜班'},
-  {name:'阿琳',role:'咖啡店老板',desc:'刚关门打烊'}
-];
-
-function chooseRole(r){
-  role=r;
-  document.getElementById('cardDM').classList.toggle('active',r==='dm');
-  document.getElementById('cardPlayer').classList.toggle('active',r==='player');
-  document.getElementById('formDM').style.display=r==='dm'?'':'none';
-  document.getElementById('formPlayer').style.display=r==='player'?'':'none';
-}
-function setMode(m){
-  charMode=m;
-  document.getElementById('modeCustom').className=m==='custom'?'btn btn-primary':'btn btn-ghost';
-  document.getElementById('modeRandom').className=m==='random'?'btn btn-primary':'btn btn-ghost';
-  document.getElementById('customCharBox').style.display=m==='custom'?'':'none';
-  document.getElementById('randomCharBox').style.display=m==='random'?'':'none';
-  if(m==='random')randomChar();
-}
-function randomChar(){
-  const c=RANDOM_CHARS[Math.floor(Math.random()*RANDOM_CHARS.length)];
-  document.getElementById('randomCharPreview').innerHTML=`<b style="color:var(--gold)">${c.name}</b><br>${c.role}<br><span style="color:var(--dim);font-size:13px">${c.desc}</span>`;
-}
-function connect(){
-  const proto=location.protocol==='https:'?'wss:':'ws:';
-  ws=new WebSocket(proto+'//'+location.host+'/ws');
-  ws.onmessage=function(e){
-    const msg=JSON.parse(e.data);
-    if(msg.type==='created'){roomId=msg.roomId;myId=msg.myId;isDM=true;}
-    if(msg.type==='joined'){roomId=msg.roomId;myId=msg.myId;isDM=false;}
-    if(msg.type==='state'){room=msg.data;render();}
-    if(msg.type==='error'){alert(msg.msg);}
-  };
-}
-function createRoom(){
-  const name=document.getElementById('createName').value||'主持人';
-  const apiKey=document.getElementById('apiKey').value;
-  const maxP=parseInt(document.getElementById('maxPlayers').value)||3;
-  connect();
-  ws.onopen=function(){ws.send(JSON.stringify({type:'create',name:name,apiKey:apiKey,maxPlayers:maxP+1}));setTimeout(showGame,500);};
-}
-function joinRoom(){
-  const rid=document.getElementById('joinRoom').value.toUpperCase().trim();
-  if(!rid||rid.length!==4){alert('房间号4位字母');return;}
-  let name,roleName;
-  if(charMode==='custom'){
-    name=document.getElementById('joinName').value.trim();
-    roleName=document.getElementById('joinRole').value.trim();
-    if(!name){alert('填角色名');return;}
-  }else{
-    const txt=document.getElementById('randomCharPreview').textContent;
-    name=txt.split('\n')[0];
-    roleName=txt.split('\n')[1]||'普通人';
-  }
-  connect();
-  ws.onopen=function(){ws.send(JSON.stringify({type:'join',name:name,roomId:rid,role:roleName}));setTimeout(showGame,500);};
-}
+function chooseRole(r){role=r;document.getElementById('cardDM').classList.toggle('active',r==='dm');document.getElementById('cardPlayer').classList.toggle('active',r==='player');document.getElementById('formDM').style.display=r==='dm'?'':'none';document.getElementById('formPlayer').style.display=r==='player'?'':'none';}
+function connect(){const proto=location.protocol==='https:'?'wss:':'ws:';ws=new WebSocket(proto+'//'+location.host+'/ws');ws.onmessage=function(e){const msg=JSON.parse(e.data);if(msg.type==='created'){roomId=msg.roomId;myId=msg.myId;isDM=true;}if(msg.type==='joined'){roomId=msg.roomId;myId=msg.myId;isDM=false;}if(msg.type==='state'){room=msg.data;render();}if(msg.type==='error'){alert(msg.msg);}};}
+function createRoom(){const name=document.getElementById('createName').value||'主持人';const apiKey=document.getElementById('apiKey').value;const maxP=parseInt(document.getElementById('maxPlayers').value)||3;connect();ws.onopen=function(){ws.send(JSON.stringify({type:'create',name:name,apiKey:apiKey,maxPlayers:maxP+1}));setTimeout(showGame,500);};}
+function joinRoom(){const rid=document.getElementById('joinRoom').value.toUpperCase().trim();if(!rid||rid.length!==4){alert('房间号4位字母');return;}const name=document.getElementById('joinName').value.trim()||'玩家';connect();ws.onopen=function(){ws.send(JSON.stringify({type:'join',name:name,roomId:rid}));setTimeout(showGame,500);};}
 function showGame(){document.getElementById('home').style.display='none';document.getElementById('game').style.display='flex';}
 function dmScene(){const v=document.getElementById('dmInput').value.trim();if(!v)return;ws.send(JSON.stringify({type:'dm_scene',text:v}));document.getElementById('dmInput').value='';}
 function sendAction(){const v=document.getElementById('actionInput').value.trim();if(!v)return;ws.send(JSON.stringify({type:'player_action',text:v}));document.getElementById('actionInput').value='';}
 function rollDice(){ws.send(JSON.stringify({type:'dice',sides:20}));}
 function toggleReady(){ws.send(JSON.stringify({type:'player_ready'}));}
-function genOpts(){alert('改用新流程了！')}
 function startOutlines(){ws.send(JSON.stringify({type:'start_outlines'}))}
-function submitOutline(){
-  const v=document.getElementById('outlineInput').value.trim();
-  if(!v){alert('写点什么再提交');return;}
-  ws.send(JSON.stringify({type:'submit_outline',text:v}));
-}
+function submitOutline(){const v=document.getElementById('outlineInput').value.trim();if(!v){alert('写点什么再提交');return;}ws.send(JSON.stringify({type:'submit_outline',text:v}));}
 function voteOutline(id){ws.send(JSON.stringify({type:'vote_outline',outlineId:id}));}
 function genOpening(){ws.send(JSON.stringify({type:'gen_opening'}))}
+function nextTurn(){ws.send(JSON.stringify({type:'next_turn'}))}
 function setDmPoints(){const p=parseInt(document.getElementById('dmPoints').value);ws.send(JSON.stringify({type:'set_stat_points',points:p}));}
-function voteOption(i){selectedOption=i;ws.send(JSON.stringify({type:'vote_scenario',optionIndex:i}));render();}
-function approve(yes){ws.send(JSON.stringify({type:'approve_scenario',approve:yes}));}
+function saveNotes(v){ws.send(JSON.stringify({type:'update_notes',text:v}));}
 function remainingPoints(){const total=room?room.statPoints||10:10;const used=Object.values(statVals).reduce(function(a,b){return a+b},0);return total-used;}
 function setStat(k,v){statVals[k]=parseInt(v);updateStatDisplay();}
-function updateStatDisplay(){
-  const ids={str:'statStrVal',agi:'statAgiVal',int:'statIntVal',wil:'statWilVal',con:'statConVal'};
-  for(const k in ids){const el=document.getElementById(ids[k]);if(el)el.textContent=statVals[k];}
-  const rem=document.getElementById('statRem');
-  if(rem)rem.innerHTML='剩余点数：<b>'+remainingPoints()+'</b> / '+(room?room.statPoints||10:10);
-}
-function saveStats(){
-  if(remainingPoints()!==0){alert('还剩'+remainingPoints()+'点没分配完！');return;}
-  ws.send(JSON.stringify({type:'set_stats',stats:Object.assign({},statVals)}));
-}
+function updateStatDisplay(){const ids={str:'statStrVal',agi:'statAgiVal',int:'statIntVal',wil:'statWilVal',con:'statConVal'};for(const k in ids){const el=document.getElementById(ids[k]);if(el)el.textContent=statVals[k];}const rem=document.getElementById('statRem');if(rem)rem.innerHTML='剩余点数：<b>'+remainingPoints()+'</b>';}
+function saveStats(){if(remainingPoints()!==0){alert('还剩'+remainingPoints()+'点没分配完！');return;}ws.send(JSON.stringify({type:'set_stats',stats:Object.assign({},statVals)}));}
 
 function render(){
   if(!room)return;
@@ -294,43 +186,37 @@ function render(){
   document.getElementById('topPlayers').textContent=room.players.length+'/'+room.maxPlayers+'人';
   document.getElementById('btnStartOutlines').style.display=(isDM&&room.state==='lobby')?'':'none';
   document.getElementById('btnGenOpening').style.display=(isDM&&room.state==='outline_voting')?'':'none';
+  document.getElementById('btnNextTurn').style.display=(isDM&&room.state==='playing')?'':'none';
   document.getElementById('dmPointsPanel').style.display=isDM?'':'none';
 
-  document.getElementById('playerList').innerHTML=room.players.map(function(p){
-    return '<div class="player-chip '+(p.ready?'ready':'')+'"><span class="dot"></span>'+p.name+(p.isDM?'<span class="dm-tag">DM</span>':'')+(p.ready?' ✓':'')+'</div>';
-  }).join('');
+  // 玩家列表（按回合顺序）
+  const order = room.turnOrder && room.turnOrder.length ? room.turnOrder : room.players.map(p=>p.id);
+  let pl='';
+  order.forEach((pid,i)=>{
+    const p=room.players.find(x=>x.id===pid);
+    if(!p)return;
+    const isCurrent = room.state==='playing' && room.currentTurn===i;
+    pl+='<div class="player-chip'+(isCurrent?' current':'')+'"><span class="dot"></span>'+p.name+(p.isDM?'<span class="dm-tag">DM</span>':'')+(isCurrent?' 👈':'')+'</div>';
+  });
+  document.getElementById('playerList').innerHTML=pl;
 
-  if(room.scenario&&room.scenario.npcs&&room.scenario.npcs.length){
-    document.getElementById('npcPanel').style.display='';
-    document.getElementById('npcList').innerHTML=room.scenario.npcs.map(function(n){return '<div class="npc-item"><b>'+n.name+'</b><br>'+n.description+'</div>';}).join('');
-  }
-  if(room.scenario&&room.scenario.clues&&room.scenario.clues.length){
-    document.getElementById('cluePanel').style.display='';
-    document.getElementById('clueList').innerHTML=room.scenario.clues.map(function(c){return '<div class="clue-item">🔍 '+c+'</div>';}).join('');
-  }
+  const dl=room.log.filter(l=>l.type==='dice').slice(-10).reverse();
+  document.getElementById('diceList').innerHTML=dl.length?dl.map(d=>'<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--dim)">'+d.player+'</span><span style="color:var(--gold);font-weight:700;margin-left:6px">d'+d.sides+'='+d.roll+'</span></div>').join(''):'<div style="font-size:12px;color:var(--dim)">还没人掷骰</div>';
+
   if(room.scenario){
-    document.getElementById('scenarioPanel').style.display='';
-    document.getElementById('scenarioInfo').innerHTML='<b style="color:var(--text)">《'+room.scenario.title+'》</b><br><br>'+(room.scenario.background||'')+'<br><br><span style="color:var(--gold)">📍 '+(room.scenario.setting||'')+'</span>';
+    document.getElementById('scenarioInfo').innerHTML='<b style="color:var(--text)">《'+room.scenario.title+'》</b><br><br>'+(room.scenario.background||'');
+    document.getElementById('mainGoal').textContent=room.scenario.mainGoal||'';
   }
 
-  const dl=room.log.filter(function(l){return l.type==='dice'}).slice(-10).reverse();
-  document.getElementById('diceList').innerHTML=dl.length?dl.map(function(d){return '<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--dim)">'+d.player+'</span><span style="color:var(--gold);font-weight:700;margin-left:6px">d'+d.sides+'='+d.roll+'</span></div>';}).join(''):'<div style="font-size:12px;color:var(--dim)">还没人掷骰</div>';
-
-  const me=room.players.find(function(p){return p.id===myId});
+  const me=room.players.find(p=>p.id===myId);
   if(me){
-    const ci=room.scenario?room.scenario.characters?room.scenario.characters[me.id-1]:null:null;
-    const roleDisplay=me.customRole||(ci?ci.role:'冒险者');
     let statsHtml='';
-    if(me.stats){
-      const s=me.stats;
-      statsHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;line-height:1.8">💪力量<span style="color:var(--gold)">'+s.str+'</span> 🏃敏捷<span style="color:var(--gold)">'+s.agi+'</span> 🧠智力<span style="color:var(--gold)">'+s.int+'</span> 🧠理智<span style="color:var(--gold)">'+s.wil+'</span> ❤️体质<span style="color:var(--gold)">'+s.con+'</span></div>';
-    }
+    if(me.stats){const s=me.stats;statsHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;line-height:1.8">💪'+s.str+' 🏃'+s.agi+' 🧠'+s.int+' 🧠理智'+s.wil+' ❤️'+s.con+'</div>';}
     let inner='<div class="char-card"><h4>'+me.name+(me.isDM?'（DM）':'')+'</h4>';
     if(me.isDM){inner+='<div class="row">讲故事和裁定</div>';}
     else{
-      inner+='<div class="row"><b style="color:var(--text)">身份：</b>'+roleDisplay+'</div>';
-      if(ci&&ci.goal)inner+='<div class="row"><b style="color:var(--text)">目标：</b>'+ci.goal+'</div>';
-      if(ci&&ci.description)inner+='<div class="row" style="margin-top:8px;line-height:1.6"><b style="color:var(--text)">你的故事：</b><br>'+ci.description+'</div>';
+      inner+='<div class="row"><b style="color:var(--text)">身份：</b>'+(me.customRole||'冒险者')+'</div>';
+      if(me.sideQuest)inner+='<div class="row" style="margin-top:8px"><b style="color:var(--gold)">🔒 支线任务：</b><br>'+me.sideQuest+'</div>';
       inner+=statsHtml;
     }
     inner+='</div>';
@@ -342,6 +228,13 @@ function render(){
   document.getElementById('playerBar').style.display=(!isDM&&(room.state==='lobby'||inGame))?'flex':'none';
   const readyBtn=document.getElementById('readyBtn');
   if(me&&readyBtn){readyBtn.classList.toggle('ready',!!me.ready);readyBtn.textContent=me.ready?'✅ 已准备':'✅ 准备';}
+
+  // 公开笔记本（不覆盖正在输入的内容）
+  const pn=document.getElementById('publicNotes');
+  if(pn&&document.activeElement!==pn)pn.value=room.publicNotes||'';
+  // 私人笔记
+  const pv=document.getElementById('privateNotes');
+  if(pv&&document.activeElement!==pv)pv.value=localStorage.getItem('dice_private')||'';
 
   const storyEl=document.getElementById('story');
   // 属性分配
@@ -363,23 +256,23 @@ function render(){
       (myOutline?
         '<div style="background:var(--bg3);padding:16px;border-radius:10px;margin-bottom:16px"><b style="color:var(--green)">✅ 已提交：</b><br>'+myOutline.text+'</div><p style="color:var(--dim)">等其他人提交...</p>'
         :
-        '<textarea id="outlineInput" placeholder="你想玩什么？比如：几个人在深山老屋里，外面下着暴风雪，发现有人失踪了..." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;color:var(--text);font-size:15px;min-height:120px;resize:vertical;outline:none"></textarea><button class="btn btn-primary" onclick="submitOutline()">📝 提交大纲</button>'
+        '<textarea id="outlineInput" placeholder="你想玩什么？比如：几个人在深山老屋里，外面下着暴风雪，发现有人失踪了..." style="min-height:120px"></textarea><button class="btn btn-primary" onclick="submitOutline()">📝 提交大纲</button>'
       )+'</div>';
   }
   // 大纲投票
   else if(room.state==='outline_voting'&&room.outlines){
     const ids=Object.keys(room.outlines);
-    storyEl.innerHTML='<div class="vote-box"><h3 style="margin-bottom:16px">🗳️ 投票选大纲（已投'+Object.keys(room.votes||{}).length+'人）</h3>'+
+    storyEl.innerHTML='<div class="vote-box"><h3 style="margin-bottom:16px">🗳️ 投票选大纲</h3>'+
       ids.map(function(id){
         const o=room.outlines[id];
         const voted=(room.votes||{})[me?me.id:0]===id;
-        const voteCount=Object.values(room.votes||{}).filter(function(v){return v===id}).length;
-        return '<div class="vote-option '+(voted?'selected':'')+'" onclick="'+(voted?'':'voteOutline(\''+id+'\')')+'"><h4>'+o.name+'的大纲 '+(voteCount?'<span style="color:var(--gold)">('+voteCount+'票)</span>':'')+'</h4><p>'+o.text+'</p></div>';
+        const vc=Object.values(room.votes||{}).filter(function(v){return v===id}).length;
+        return '<div class="vote-option '+(voted?'selected':'')+'" onclick="'+(voted?'':'voteOutline(\''+id+'\')')+'"><h4>'+o.name+'的大纲 '+(vc?'<span style="color:var(--gold)">('+vc+'票)</span>':'')+'</h4><p>'+o.text+'</p></div>';
       }).join('')+'</div>';
   }
   // 空状态
   else if(room.log.length===0){
-    storyEl.innerHTML='<div class="story-empty"><div class="big-icon">🎭</div><p style="font-size:16px;margin-bottom:8px">'+(isDM?'等玩家到齐，点"生成剧本选项"':'等DM生成剧本选项...')+'</p><p style="font-size:13px">'+(isDM?'玩家点准备后生成选项':'你点"准备"表示准备好了')+'</p></div>';
+    storyEl.innerHTML='<div class="story-empty"><div class="big-icon">🎭</div><p style="font-size:16px;margin-bottom:8px">'+(isDM?'等玩家到齐，点"开始写大纲"':'等DM生成剧本...')+'</p></div>';
   }
   // 正常剧情流
   else{
