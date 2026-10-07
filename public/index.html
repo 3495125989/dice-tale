@@ -103,7 +103,19 @@ textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-
   <div id="formPlayer" class="form-box" style="display:none">
     <h2>🚪 加入房间</h2>
     <div class="form-group"><label>房间号</label><input id="joinRoom" maxlength="4" style="text-transform:uppercase;font-size:20px;letter-spacing:4px;text-align:center" placeholder="ABCD"></div>
-    <div class="form-group"><label>你的称呼</label><input id="joinName" placeholder="你的名字"></div>
+    <div class="form-group"><label>你的名字</label><input id="joinName" placeholder="你的名字"></div>
+    <div class="form-group"><label>你的身份</label>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button type="button" id="modeCustom" class="btn btn-primary" style="margin-top:0" onclick="setMode('custom')">✍️ 自己写</button>
+        <button type="button" id="modeRandom" class="btn" style="margin-top:0;border:1px solid var(--border);color:var(--dim);background:transparent" onclick="setMode('random')">🎲 随机</button>
+      </div>
+      <div id="customCharBox">
+        <input id="joinRole" placeholder="你的身份，比如：退休警察/大学生/外卖员">
+      </div>
+      <div id="randomCharBox" style="display:none;background:var(--bg3);padding:14px;border-radius:8px;font-size:14px;line-height:1.6">
+        <div id="randomCharPreview">点上面"随机"按钮</div>
+      </div>
+    </div>
     <button class="btn btn-primary" onclick="joinRoom()">🎲 加入游戏</button>
   </div>
 </div>
@@ -158,11 +170,16 @@ textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-
 <script>
 let ws=null,myId=null,roomId=null,isDM=false,room=null,role='dm';
 let statVals={str:1,agi:1,int:1,wil:1,con:1};
+let charMode='custom';
+const RANDOM_CHARS=['退休警察','大学生','外卖员','便利店店员','夜班出租车司机','退休邮递员','装修工人','小区保安','咖啡店老板','护士','程序员','厨师','失业白领','图书管理员','健身房教练','花店老板'];
+
+function setMode(m){charMode=m;document.getElementById('modeCustom').className=m==='custom'?'btn btn-primary':'btn';document.getElementById('modeRandom').className=m==='random'?'btn btn-primary':'btn';document.getElementById('modeCustom').style.border='';document.getElementById('modeRandom').style.border='';document.getElementById('customCharBox').style.display=m==='custom'?'':'none';document.getElementById('randomCharBox').style.display=m==='random'?'':'none';if(m==='random')randomChar();}
+function randomChar(){document.getElementById('randomCharPreview').textContent=RANDOM_CHARS[Math.floor(Math.random()*RANDOM_CHARS.length)];}
 
 function chooseRole(r){role=r;document.getElementById('cardDM').classList.toggle('active',r==='dm');document.getElementById('cardPlayer').classList.toggle('active',r==='player');document.getElementById('formDM').style.display=r==='dm'?'':'none';document.getElementById('formPlayer').style.display=r==='player'?'':'none';}
-function connect(){const proto=location.protocol==='https:'?'wss:':'ws:';ws=new WebSocket(proto+'//'+location.host+'/ws');ws.onmessage=function(e){const msg=JSON.parse(e.data);if(msg.type==='created'){roomId=msg.roomId;myId=msg.myId;isDM=true;}if(msg.type==='joined'){roomId=msg.roomId;myId=msg.myId;isDM=false;}if(msg.type==='state'){room=msg.data;render();}if(msg.type==='error'){alert(msg.msg);}};}
+function connect(){const proto=location.protocol==='https:'?'wss:':'ws:';ws=new WebSocket(proto+'//'+location.host+'/ws');ws.onmessage=function(e){const msg=JSON.parse(e.data);if(msg.type==='created'){roomId=msg.roomId;myId=msg.myId;isDM=true;}if(msg.type==='joined'){roomId=msg.roomId;myId=msg.myId;isDM=false;}if(msg.type==='state'){room=msg.data;render();}if(msg.type==='error'){alert(msg.msg);}};ws.onclose=function(){setTimeout(connect,3000);};}
 function createRoom(){const name=document.getElementById('createName').value||'主持人';const apiKey=document.getElementById('apiKey').value;const maxP=parseInt(document.getElementById('maxPlayers').value)||3;connect();ws.onopen=function(){ws.send(JSON.stringify({type:'create',name:name,apiKey:apiKey,maxPlayers:maxP+1}));setTimeout(showGame,500);};}
-function joinRoom(){const rid=document.getElementById('joinRoom').value.toUpperCase().trim();if(!rid||rid.length!==4){alert('房间号4位字母');return;}const name=document.getElementById('joinName').value.trim()||'玩家';connect();ws.onopen=function(){ws.send(JSON.stringify({type:'join',name:name,roomId:rid}));setTimeout(showGame,500);};}
+function joinRoom(){const rid=document.getElementById('joinRoom').value.toUpperCase().trim();if(!rid||rid.length!==4){alert('房间号4位字母');return;}const name=document.getElementById('joinName').value.trim()||'玩家';let roleName='冒险者';if(charMode==='custom'){roleName=document.getElementById('joinRole').value.trim()||'冒险者';}else{roleName=document.getElementById('randomCharPreview').textContent;}connect();ws.onopen=function(){ws.send(JSON.stringify({type:'join',name:name,roomId:rid,role:roleName}));setTimeout(showGame,500);};}
 function showGame(){document.getElementById('home').style.display='none';document.getElementById('game').style.display='flex';}
 function dmScene(){const v=document.getElementById('dmInput').value.trim();if(!v)return;ws.send(JSON.stringify({type:'dm_scene',text:v}));document.getElementById('dmInput').value='';}
 function sendAction(){const v=document.getElementById('actionInput').value.trim();if(!v)return;ws.send(JSON.stringify({type:'player_action',text:v}));document.getElementById('actionInput').value='';}
