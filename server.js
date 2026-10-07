@@ -31,7 +31,7 @@ function createRoom() {
     aiModel: 'deepseek-chat',
     options: null,
     votes: {},
-    approveVotes: {},
+    outlines: null,
     statPoints: 10,
   });
   return rooms.get(id);
@@ -56,6 +56,8 @@ function broadcastState(room) {
     maxPlayers: room.maxPlayers,
     turn: room.turn,
     statPoints: room.statPoints,
+    outlines: room.outlines || null,
+    votes: room.votes || {},
   };
   broadcast(room, { type: 'state', data: snapshot });
 }
@@ -200,15 +202,50 @@ wss.on('connection', (ws) => {
         broadcastState(room);
         break;
       }
-      // DM生成剧本选项
-      case 'generate_options': {
+      // DM开始（大家准备好后）
+      case 'start_outlines': {
         if (!me || !me.isDM) return;
-        const pCount = room.players.filter(p => !p.isDM).length;
-        room.log.push({ type: 'system', text: '🎲 AI正在生成3个剧本选项...', time: Date.now() });
+        room.state = 'outline';
+        room.outlines = {};
+        room.log.push({ type: 'system', text: '✏️ 大家写自己想玩的大纲，提交后投票', time: Date.now() });
         broadcastState(room);
-        genOptions(room, pCount).then(() => {
-          room.state = 'voting';
+        break;
+      }
+      // 玩家提交大纲
+      case 'submit_outline': {
+        if (!me || me.isDM) return;
+        room.outlines[me.id] = { name: me.name, text: msg.text };
+        room.log.push({ type: 'system', text: '📝 ' + me.name + ' 提交了大纲', time: Date.now() });
+        // 检查是否都提交了
+        const players = room.players.filter(p => !p.isDM);
+        if (Object.keys(room.outlines).length >= players.length) {
+          room.state = 'outline_voting';
           room.votes = {};
+        }
+        broadcastState(room);
+        break;
+      }
+      // 投票选大纲
+      case 'vote_outline': {
+        if (!me) return;
+        room.votes[me.id] = msg.outlineId;
+        broadcastState(room);
+        break;
+      }
+      // DM根据选中大纲生成开场白
+      case 'gen_opening': {
+        if (!me || !me.isDM) return;
+        // 统计票数
+        const counts = {};
+        Object.values(room.votes).forEach(i => counts[i] = (counts[i]||0)+1);
+        let bestId = null, max = 0;
+        Object.entries(counts).forEach(([i, c]) => { if(c > max) { max = c; bestId = i; } });
+        const selected = room.outlines[bestId];
+        room.log.push({ type: 'system', text: '🎲 选中了 ' + selected.name + ' 的大纲，正在生成开场白...', time: Date.now() });
+        broadcastState(room);
+        const pCount = room.players.filter(p => !p.isDM).length;
+        generateFromOutline(room, selected.text, pCount).then(() => {
+          room.state = 'playing';
           broadcastState(room);
         }).catch(err => {
           room.log.push({ type: 'system', text: '生成失败: ' + err.message, time: Date.now() });
@@ -216,58 +253,7 @@ wss.on('connection', (ws) => {
         });
         break;
       }
-      // 玩家投票选剧本
-      case 'vote_scenario': {
-        if (!me || me.isDM) return;
-        room.votes[me.id] = msg.optionIndex;
-        // 如果所有玩家都投了，统计结果
-        const players = room.players.filter(p => !p.isDM);
         const voted = Object.keys(room.votes).length;
-        if (voted >= players.length) {
-          // 统计票数
-          const counts = {};
-          Object.values(room.votes).forEach(i => counts[i] = (counts[i]||0)+1);
-          let best = 0, max = 0;
-          Object.entries(counts).forEach(([i, c]) => { if(c > max) { max = c; best = parseInt(i); } });
-          // 生成完整剧本
-          room.log.push({ type: 'system', text: `📖 投票结果：选中了《${room.options[best].title}》，正在生成完整剧本...`, time: Date.now() });
-          broadcastState(room);
-          generateScenarioFromOption(room, room.options[best], players.length).then(() => {
-            room.state = 'preview';
-            room.approveVotes = {};
-            broadcastState(room);
-          }).catch(err => {
-            room.log.push({ type: 'system', text: '剧本生成失败: ' + err.message, time: Date.now() });
-            broadcastState(room);
-          });
-        } else {
-          broadcastState(room);
-        }
-        break;
-      }
-      // 玩家投票接受/重roll
-      case 'approve_scenario': {
-        if (!me || me.isDM) return;
-        room.approveVotes[me.id] = msg.approve; // true=接受, false=重roll
-        const players = room.players.filter(p => !p.isDM);
-        const voted = Object.keys(room.approveVotes).length;
-        if (voted >= players.length) {
-          const approved = Object.values(room.approveVotes).filter(v => v).length;
-          if (approved > players.length / 2) {
-            room.state = 'playing';
-            room.log.push({ type: 'system', text: '✅ 大家接受了剧本，游戏开始！', time: Date.now() });
-          } else {
-            room.state = 'lobby';
-            room.options = null;
-            room.scenario = null;
-            room.votes = {};
-            room.approveVotes = {};
-            room.log.push({ type: 'system', text: '🔄 大家想重roll，DM重新生成选项', time: Date.now() });
-          }
-        }
-        broadcastState(room);
-        break;
-      }
       // 结束游戏
       case 'end': {
         if (!me || !me.isDM) return;
@@ -526,43 +512,40 @@ async function genOptions(room, playerCount) {
   room.options = JSON.parse(text);
 }
 
-// 根据选中的选项生成完整剧本
-async function generateScenarioFromOption(room, option, playerCount) {
+// 根据玩家大纲生成开场白和背景
+async function generateFromOutline(room, outlineText, playerCount) {
   if (!room.apiKey) throw new Error('未设置API Key');
-  const prompt = `你是TRPG跑团主持人。请为一个${playerCount}人跑团生成完整剧本。
-题材方向：${option.theme}
-剧本名参考：${option.title}
-大纲参考：${option.outline}
+  const prompt = `你是TRPG跑团DM。玩家们选了这个大纲：${outlineText}
 
-重要风格要求（必须遵守）：
-- 写具体的人和事，不要写抽象概念和虚头巴脑的文学腔
-- 不要写"记忆的回响""破碎的时间""存在的虚无"这种话
-- 要写"谁、在哪、干了什么、出了什么事"
-- 像写真实案件/真实故事一样写
+请基于这个大纲，为${playerCount}人跑团生成开场白和故事背景。
 
-请输出JSON格式：
+重要要求：
+- 不要写"你们来到了..."这种介绍式开场
+- 直接从故事中间开始，一上来就有事情发生
+- 大白话，不要文艺腔，不要抽象概念
+- 开场白要制造紧张感/好奇心，让玩家想立刻行动
+
+输出JSON：
 {
   "title": "剧本名称",
-  "background": "故事背景（150字，写清楚发生了什么事，不要文艺腔）",
-  "setting": "你们现在在哪（50字，具体场景描述）",
+  "background": "故事背景（150字，写清楚发生了什么事）",
+  "opening": "开场白（100字，直接从事件中间开始，不要介绍场景）",
   "characters": [{
     "name": "角色名",
-    "role": "具体身份（比如：便利店店员/快递员/退休教师）",
-    "description": "你是谁、为什么在这里（80字，大白话，不要文艺腔）",
-    "goal": "你想干什么（比如：找到失踪的猫/找出谁偷了快递）"
+    "role": "具体身份",
+    "description": "你是谁、为什么在这里（80字）",
+    "goal": "你想干什么"
   }],
-  "npcs": [{"name":"NPC名","description":"这个NPC是谁、长什么样","relation":"和玩家什么关系"}],
-  "clues": ["具体线索1","具体线索2","具体线索3"],
-  "winCondition": "怎么算赢",
-  "twist": "剧情反转（DM专用）"
+  "npcs": [{"name":"NPC名","description":"描述","relation":"关系"}],
+  "clues": ["线索1","线索2","线索3"],
+  "winCondition": "怎么算赢"
 }
-
-要求：characters数组正好${playerCount}个角色，所有内容用大白话写，不要文学腔。`;
+characters数组正好${playerCount}个。`;
 
   const res = await fetch(room.aiBaseUrl + '/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + room.apiKey },
-    body: JSON.stringify({ model: room.aiModel, messages: [{ role: 'user', content: prompt }], temperature: 0.8, max_tokens: 3000 }),
+    body: JSON.stringify({ model: room.aiModel, messages: [{ role: 'user', content: prompt }], temperature: 0.9, max_tokens: 3000 }),
   });
   if (!res.ok) throw new Error('API错误');
   const data = await res.json();
@@ -570,6 +553,8 @@ async function generateScenarioFromOption(room, option, playerCount) {
   const match = text.match(/\{[\s\S]*\}/);
   if (match) text = match[0];
   room.scenario = JSON.parse(text);
+  // 把开场白加到剧情流最前面
+  room.log.unshift({ type: 'dm', text: room.scenario.opening || room.scenario.setting || '', time: Date.now() });
 }
 
 server.listen(PORT, () => {
